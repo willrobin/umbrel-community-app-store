@@ -9,9 +9,9 @@ automatically suggests titles, tags, correspondents, and custom fields.
 
 ## Required Configuration
 Set the following environment variables in `docker-compose.yml` before starting:
-- `PAPERLESS_BASE_URL` (paperless-ngx base URL, e.g. `http://umbrel.local:8000`)
+- `PAPERLESS_BASE_URL` (paperless-ngx base URL, e.g. `http://umbrel.local:2349`)
 - `PAPERLESS_API_TOKEN` (paperless-ngx API token)
-- `OPENAI_API_KEY` (or configure your preferred LLM provider)
+- `LLM_PROVIDER`, `LLM_MODEL`, `OLLAMA_HOST` (or configure a different LLM provider)
 
 ## Persistence
 - Prompts: `${APP_DATA_DIR}/paperless-gpt/prompts` -> `/app/prompts`

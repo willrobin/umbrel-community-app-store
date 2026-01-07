@@ -12,14 +12,15 @@ services:
     init: true
     restart: unless-stopped
     environment:
-      # Set this to your Paperless-ngx URL (Umbrel default is often http://umbrel.local:8000).
-      PAPERLESS_BASE_URL: "http://umbrel.local:8000"
+      # Set this to your Paperless-ngx URL (Umbrel typically uses port 2349).
+      PAPERLESS_BASE_URL: "http://umbrel.local:2349"
       PAPERLESS_API_TOKEN: "CHANGE_ME"
       MANUAL_TAG: "paperless-gpt"
       AUTO_TAG: "paperless-gpt-auto"
-      LLM_PROVIDER: "openai"
-      LLM_MODEL: "gpt-4o"
-      OPENAI_API_KEY: "CHANGE_ME"
+      LLM_PROVIDER: "ollama"
+      LLM_MODEL: "qwen2.5:7b"
+      OLLAMA_HOST: "http://<ollama-host>:11434"
+      TOKEN_LIMIT: "4096"
     volumes:
       - ${APP_DATA_DIR}/paperless-gpt/prompts:/app/prompts
       - ${APP_DATA_DIR}/paperless-gpt/db:/app/db
