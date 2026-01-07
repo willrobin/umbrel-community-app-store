@@ -1,0 +1,29 @@
+manifestVersion: 1
+id: sparkles-paperless-ai
+name: Paperless-AI
+tagline: AI tagging and RAG search for Paperless-ngx
+icon: https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png
+category: Productivity
+version: "1.0.0"
+port: 3000
+description: >-
+  AI-powered extension for Paperless-ngx that provides automatic document
+  classification, smart tagging, and semantic search via OpenAI-compatible APIs
+  and Ollama.
+
+developer: Clusterzx
+website: https://github.com/clusterzx/paperless-ai
+submitter: Sparkles
+submission: https://github.com/clusterzx/paperless-ai
+repo: https://github.com/clusterzx/paperless-ai
+support: https://github.com/clusterzx/paperless-ai/issues
+gallery:
+  - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/preview.png
+  - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/dashboard.png
+  - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/ppairag.png
+releaseNotes: >-
+  Initial release on the Sparkles community store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
