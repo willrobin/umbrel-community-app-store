@@ -4,7 +4,7 @@ services:
   app_proxy:
     environment:
       # Format: <app-id>_<docker-service-name>_1
-      APP_HOST: sparkles-paperless-ai_server_1
+      APP_HOST: kasa-paperless-ai_server_1
       APP_PORT: 3000
 
   server:
@@ -23,7 +23,7 @@ services:
       RAG_SERVICE_URL: "http://localhost:8000"
       RAG_SERVICE_ENABLED: "true"
     volumes:
-      - sparkles-paperless-ai_data:/app/data
+      - kasa-paperless-ai_data:/app/data
 
 volumes:
-  sparkles-paperless-ai_data:
+  kasa-paperless-ai_data:

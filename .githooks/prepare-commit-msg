@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+msg_file="$1"
+msg_source="${2:-}"
+
+# Skip for merges, squashes, or if message already exists.
+if [[ "$msg_source" == "merge" || "$msg_source" == "squash" ]]; then
+  exit 0
+fi
+
+if [[ -s "$msg_file" ]]; then
+  exit 0
+fi
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+staged_files=$(git diff --cached --name-only)
+if [[ -z "$staged_files" ]]; then
+  exit 0
+fi
+
+scope="repo"
+type="chore"
+app_id=""
+
+if echo "$staged_files" | rg -q '^apps/'; then
+  type="feat"
+  scope="apps"
+  app_id=$(echo "$staged_files" | rg '^apps/' | head -n1 | cut -d/ -f2)
+fi
+
+if echo "$staged_files" | rg -q '^docs/|\.md$'; then
+  type="docs"
+  scope="docs"
+fi
+
+if echo "$staged_files" | rg -q '^scripts/'; then
+  type="chore"
+  scope="scripts"
+fi
+
+if echo "$staged_files" | rg -q '^templates/'; then
+  type="chore"
+  scope="templates"
+fi
+
+if echo "$staged_files" | rg -q '^umbrel-app-store.yml$'; then
+  type="chore"
+  scope="store"
+fi
+
+subject="update files"
+if [[ -n "$app_id" ]]; then
+  subject="update $app_id"
+fi
+
+printf "%s(%s): %s\n" "$type" "$scope" "$subject" > "$msg_file"

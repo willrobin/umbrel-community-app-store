@@ -11,7 +11,7 @@ classification, smart tagging, and semantic search.
 ## Configuration
 - App UI: http://umbrel.local:3000
 - Default port: 3000
-- Data volume: sparkles-paperless-ai_data -> /app/data
+- Data volume: kasa-paperless-ai_data -> /app/data
 
 ## Notes
 Complete the in-app setup after first start. See the upstream install guide for

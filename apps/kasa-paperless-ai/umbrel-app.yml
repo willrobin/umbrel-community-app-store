@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: sparkles-paperless-ai
+id: kasa-paperless-ai
 name: Paperless-AI
 tagline: AI tagging and RAG search for Paperless-ngx
 icon: https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png
@@ -13,7 +13,7 @@ description: >-
 
 developer: Clusterzx
 website: https://github.com/clusterzx/paperless-ai
-submitter: Sparkles
+submitter: Kasa
 submission: https://github.com/clusterzx/paperless-ai
 repo: https://github.com/clusterzx/paperless-ai
 support: https://github.com/clusterzx/paperless-ai/issues
@@ -22,7 +22,7 @@ gallery:
   - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/dashboard.png
   - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/ppairag.png
 releaseNotes: >-
-  Initial release on the Sparkles community store.
+  Initial release on the Kasa community store.
 dependencies: []
 path: ""
 defaultUsername: ""
