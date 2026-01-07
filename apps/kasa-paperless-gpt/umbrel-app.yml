@@ -1,0 +1,26 @@
+manifestVersion: 1
+id: kasa-paperless-gpt
+name: Paperless-GPT
+tagline: AI OCR and tagging for paperless-ngx
+icon: https://raw.githubusercontent.com/icereed/paperless-gpt/main/web-app/src/assets/logo.png
+category: Productivity
+version: "0.1.0"
+port: 8080
+description: >-
+  AI-powered companion for paperless-ngx that enhances OCR with LLMs and
+  automatically suggests titles, tags, correspondents, and custom fields.
+
+developer: Icereed
+website: https://github.com/icereed/paperless-gpt
+submitter: Kasa
+submission: https://github.com/icereed/paperless-gpt
+repo: https://github.com/icereed/paperless-gpt
+support: https://github.com/icereed/paperless-gpt/issues
+gallery:
+  - https://raw.githubusercontent.com/icereed/paperless-gpt/main/paperless-gpt-screenshot.png
+releaseNotes: >-
+  Initial release on the Kasa community store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

@@ -23,7 +23,6 @@ services:
       RAG_SERVICE_URL: "http://localhost:8000"
       RAG_SERVICE_ENABLED: "true"
     volumes:
-      - kasa-paperless-ai_data:/app/data
+      - ${APP_DATA_DIR}/paperless-ai:/app/data
 
-volumes:
-  kasa-paperless-ai_data:
+volumes: {}
