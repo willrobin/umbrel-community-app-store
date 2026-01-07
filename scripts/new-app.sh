@@ -41,12 +41,6 @@ fi
 
 mkdir -p "$app_dir"
 
-link_path="$repo_root/$app_id"
-if [[ -e "$link_path" ]]; then
-  echo "ERROR: app link already exists: $link_path" >&2
-  exit 1
-fi
-
 app_id_esc=$(escape_sed "$app_id")
 app_name_esc=$(escape_sed "$app_name")
 
@@ -91,7 +85,5 @@ sed -i '' \
     -e "s/__APP_NAME__/$app_name_esc/g" \
     "$app_dir/README.md"
 
-ln -s "apps/$app_id" "$link_path"
-
 echo "Created app scaffold in $app_dir"
-echo "Note: umbrel-app-store.yml only defines store metadata; no app registry update needed."
+echo "Run ./scripts/publish.sh to expose apps at repo root for Umbrel."

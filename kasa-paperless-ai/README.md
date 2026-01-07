@@ -1,0 +1,18 @@
+# Paperless-AI
+
+AI-powered extension for Paperless-ngx that adds automatic document
+classification, smart tagging, and semantic search.
+
+## Links
+- Upstream: https://github.com/clusterzx/paperless-ai
+- Issues: https://github.com/clusterzx/paperless-ai/issues
+- Install guide: https://github.com/clusterzx/paperless-ai/wiki/2.-Installation
+
+## Configuration
+- App UI: http://umbrel.local:3000
+- Default port: 3000
+- Data volume: kasa-paperless-ai_data -> /app/data
+
+## Notes
+Complete the in-app setup after first start. See the upstream install guide for
+required API keys and Paperless-ngx connection details.

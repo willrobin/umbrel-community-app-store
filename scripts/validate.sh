@@ -27,16 +27,15 @@ else
     fi
 
     app_id=$(basename "$entry")
-    link_path="$repo_root/$app_id"
-    if [[ ! -e "$link_path" ]]; then
-      fail "Missing app link at repo root: $link_path (expected for Umbrel)"
+    root_dir="$repo_root/$app_id"
+    if [[ ! -d "$root_dir" ]]; then
+      fail "Missing app directory at repo root: $root_dir (run scripts/publish.sh)"
     else
-      if [[ -L "$link_path" ]]; then
-        target=$(readlink "$link_path" || true)
-        if [[ "$target" != "apps/$app_id" ]]; then
-          fail "App link $link_path should point to apps/$app_id (got: $target)"
+      for req in umbrel-app.yml docker-compose.yml README.md; do
+        if [[ ! -f "$root_dir/$req" ]]; then
+          fail "Missing $req in $root_dir (run scripts/publish.sh)"
         fi
-      fi
+      done
     fi
 
     for req in umbrel-app.yml docker-compose.yml README.md; do

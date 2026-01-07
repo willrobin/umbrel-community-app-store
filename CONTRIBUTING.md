@@ -12,8 +12,8 @@ apps/<app-id>/
   README.md
 ```
 
-For Umbrel to discover apps, keep a matching top-level link:
-`<app-id>` -> `apps/<app-id>`.
+For Umbrel to discover apps, publish the app to the repo root:
+`./scripts/publish.sh`
 
 ## Persistence, Ports, Env, Secrets
 - Persist only what is necessary using named volumes or host paths under Umbrel's data directory.
