@@ -9,7 +9,7 @@ automatically suggests titles, tags, correspondents, and custom fields.
 
 ## Required Configuration
 Set the following environment variables in `docker-compose.yml` before starting:
-- `PAPERLESS_BASE_URL` (paperless-ngx base URL)
+- `PAPERLESS_BASE_URL` (paperless-ngx base URL, e.g. `http://umbrel.local:8000`)
 - `PAPERLESS_API_TOKEN` (paperless-ngx API token)
 - `OPENAI_API_KEY` (or configure your preferred LLM provider)
 
