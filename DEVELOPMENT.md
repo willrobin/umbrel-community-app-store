@@ -13,6 +13,10 @@
    `./scripts/validate.sh`
 4) Commit and push.
 
+## Umbrel App Discovery
+- Umbrel expects apps at repo root. We keep apps in `apps/` and add a top-level
+  link per app (e.g. `kasa-paperless-ai` -> `apps/kasa-paperless-ai`).
+
 ## Git Hooks (auto commit messages)
 - Enable once per clone:
   `./scripts/setup-githooks.sh`
