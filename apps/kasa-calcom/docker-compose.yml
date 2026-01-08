@@ -22,6 +22,8 @@ services:
       NEXTAUTH_SECRET: "${APP_SEED}"
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
       NODE_ENV: "production"
+    volumes:
+      - ${APP_DATA_DIR}/calcom:/app/apps/web/.next/cache
 
   db:
     image: postgres:15-alpine

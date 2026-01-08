@@ -2,7 +2,7 @@ manifestVersion: 1
 id: kasa-azuracast
 name: AzuraCast
 tagline: Self-hosted radio streaming management suite
-icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-azuracast/icon.png
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-azuracast/icon.png
 category: Media
 version: "0.1.0"
 port: 3004
