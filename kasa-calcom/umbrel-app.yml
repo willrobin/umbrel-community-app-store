@@ -5,7 +5,7 @@ tagline: Open-source scheduling for individuals and teams
 icon: https://cal.com/android-chrome-512x512.png
 category: Productivity
 version: "0.1.0"
-port: 3000
+port: 3002
 description: >-
   Cal.com is an open-source scheduling platform for individuals and teams.
   Create booking pages, manage availability, and coordinate meetings with

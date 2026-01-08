@@ -5,7 +5,7 @@ tagline: Self-hosted radio streaming management suite
 icon: https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/frontend/public/img/logo.svg
 category: Media
 version: "0.1.0"
-port: 80
+port: 3004
 description: >-
   AzuraCast is a self-hosted, all-in-one web radio management suite. Run
   multiple stations, manage media libraries, and stream to listeners from a

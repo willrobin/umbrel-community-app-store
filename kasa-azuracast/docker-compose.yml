@@ -20,7 +20,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
-      MYSQL_PASSWORD: azuracast
+      MYSQL_PASSWORD: "${APP_SEED}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
@@ -38,7 +38,7 @@ services:
       MYSQL_PORT: 3306
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
-      MYSQL_PASSWORD: azuracast
+      MYSQL_PASSWORD: "${APP_SEED}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
     volumes:
@@ -49,10 +49,10 @@ services:
     image: mariadb:10.11
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: azuracast
+      MYSQL_ROOT_PASSWORD: "${APP_SEED}"
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
-      MYSQL_PASSWORD: azuracast
+      MYSQL_PASSWORD: "${APP_SEED}"
     volumes:
       - ${APP_DATA_DIR}/azuracast/db:/var/lib/mysql
 

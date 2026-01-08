@@ -9,8 +9,8 @@ classification, smart tagging, and semantic search.
 - Install guide: https://github.com/clusterzx/paperless-ai/wiki/2.-Installation
 
 ## Configuration
-- App UI: http://umbrel.local:3000
-- Default port: 3000
+- App UI: http://umbrel.local:3001
+- Default port: 3001
 - Data volume: kasa-paperless-ai_data -> /app/data
 
 ## Notes

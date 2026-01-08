@@ -15,12 +15,12 @@ services:
       - db
       - redis
     environment:
-      DATABASE_URL: "postgresql://calcom:calcom@db:5432/calcom"
-      DATABASE_DIRECT_URL: "postgresql://calcom:calcom@db:5432/calcom"
+      DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
+      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
       REDIS_URL: "redis://redis:6379"
-      NEXTAUTH_URL: "http://umbrel.local:3000"
-      NEXTAUTH_SECRET: "umbrel-calcom-change-me"
-      CALENDSO_ENCRYPTION_KEY: "umbrel-calcom-encryption-key-change-me"
+      NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
+      NEXTAUTH_SECRET: "${APP_SEED}"
+      CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
       NODE_ENV: "production"
 
   db:
@@ -29,7 +29,7 @@ services:
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
-      POSTGRES_PASSWORD: "calcom"
+      POSTGRES_PASSWORD: "${APP_SEED}"
     volumes:
       - ${APP_DATA_DIR}/calcom/db:/var/lib/postgresql/data
 

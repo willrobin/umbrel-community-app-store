@@ -10,8 +10,8 @@ dashboard.
 - Issues: https://github.com/AzuraCast/AzuraCast/issues
 
 ## Configuration
-- App UI: http://umbrel.local
-- Default port: 80
+- App UI: http://umbrel.local:3004
+- Default port: 3004
 - Data volumes:
   - `${APP_DATA_DIR}/azuracast` -> `/var/azuracast`
   - `${APP_DATA_DIR}/azuracast/db` -> `/var/lib/mysql`

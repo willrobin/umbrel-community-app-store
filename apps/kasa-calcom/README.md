@@ -10,17 +10,18 @@ workflows.
 - Issues: https://github.com/calcom/cal.com/issues
 
 ## Configuration
-- App UI: http://umbrel.local:3000
-- Default port: 3000
+- App UI: http://umbrel.local:3002
+- Default port: 3002
 - Data volumes:
   - `${APP_DATA_DIR}/calcom/db` -> `/var/lib/postgresql/data`
   - `${APP_DATA_DIR}/calcom/redis` -> `/data`
 - Required environment:
-  - `NEXTAUTH_URL` (public URL for the Umbrel app)
-  - `NEXTAUTH_SECRET` (set a strong random string)
-  - `CALENDSO_ENCRYPTION_KEY` (set a strong random string)
+  - `NEXTAUTH_URL` (public URL for the Umbrel app, default uses `$DEVICE_DOMAIN_NAME`)
+  - `NEXTAUTH_SECRET` (defaults to `$APP_SEED`)
+  - `CALENDSO_ENCRYPTION_KEY` (defaults to `$APP_SEED`)
 
 ## Notes
-- Update the secrets before exposing Cal.com publicly.
+- Update the secrets before exposing Cal.com publicly if you don't want to use
+  `$APP_SEED`.
 - The database credentials are internal defaults; change them if you plan to
   expose the database outside Umbrel.
