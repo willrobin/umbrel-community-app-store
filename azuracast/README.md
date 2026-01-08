@@ -1,16 +1,21 @@
 # AzuraCast
 
-## Overview
 AzuraCast is a self-hosted, all-in-one web radio management suite. Run multiple
 stations, manage media libraries, and stream to listeners from a single
 dashboard.
 
+## Links
+- Upstream: https://github.com/AzuraCast/AzuraCast
+- Docs: https://docs.azuracast.com/
+- Issues: https://github.com/AzuraCast/AzuraCast/issues
+
 ## Configuration
-- Ports: 80
-- Volumes:
-  - `${APP_DATA_DIR}/azuracast` -> AzuraCast data
-  - `${APP_DATA_DIR}/azuracast/db` -> MariaDB data
-  - `${APP_DATA_DIR}/azuracast/redis` -> Redis data
+- App UI: http://umbrel.local
+- Default port: 80
+- Data volumes:
+  - `${APP_DATA_DIR}/azuracast` -> `/var/azuracast`
+  - `${APP_DATA_DIR}/azuracast/db` -> `/var/lib/mysql`
+  - `${APP_DATA_DIR}/azuracast/redis` -> `/data`
 
 ## Notes
 - AzuraCast manages station streaming internally. If you need external access
