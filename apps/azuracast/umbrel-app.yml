@@ -1,0 +1,26 @@
+manifestVersion: 1
+id: azuracast
+name: AzuraCast
+tagline: Self-hosted radio streaming management suite
+icon: https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/frontend/public/img/logo.svg
+category: Media
+version: "0.1.0"
+port: 80
+description: >-
+  AzuraCast is a self-hosted, all-in-one web radio management suite. Run
+  multiple stations, manage media libraries, and stream to listeners from a
+  single dashboard.
+
+developer: AzuraCast
+website: https://www.azuracast.com
+submitter: Kasa
+submission: https://github.com/AzuraCast/AzuraCast
+repo: https://github.com/AzuraCast/AzuraCast
+support: https://github.com/AzuraCast/AzuraCast/issues
+gallery: []
+releaseNotes: >-
+  Initial release on the Kasa community store.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

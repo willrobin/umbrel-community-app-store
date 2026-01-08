@@ -1,0 +1,63 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Format: <app-id>_<docker-service-name>_1
+      APP_HOST: azuracast_web_1
+      APP_PORT: 80
+
+  web:
+    image: ghcr.io/azuracast/azuracast:stable
+    init: true
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+      - stations
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: azuracast
+      MYSQL_USER: azuracast
+      MYSQL_PASSWORD: azuracast
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ${APP_DATA_DIR}/azuracast:/var/azuracast
+
+  stations:
+    image: ghcr.io/azuracast/azuracast:stable
+    init: true
+    restart: unless-stopped
+    depends_on:
+      - db
+      - redis
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: azuracast
+      MYSQL_USER: azuracast
+      MYSQL_PASSWORD: azuracast
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    volumes:
+      - ${APP_DATA_DIR}/azuracast:/var/azuracast
+    command: stations
+
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: azuracast
+      MYSQL_DATABASE: azuracast
+      MYSQL_USER: azuracast
+      MYSQL_PASSWORD: azuracast
+    volumes:
+      - ${APP_DATA_DIR}/azuracast/db:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - ${APP_DATA_DIR}/azuracast/redis:/data
