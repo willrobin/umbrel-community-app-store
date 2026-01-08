@@ -20,6 +20,12 @@ This directory contains comprehensive documentation for the Kasa Community App S
   - Best practices and critical rules
   - Quick reference commands
 
+- **[GIT_WORKFLOW_BEST_PRACTICES.md](GIT_WORKFLOW_BEST_PRACTICES.md)** - Git workflow strategy
+  - One branch per task vs. long-lived feature branches
+  - When to combine vs. split changes
+  - Real-world examples and anti-patterns
+  - Decision trees and checklists
+
 ### ✅ Checklists
 
 - **[app-checklist.md](app-checklist.md)** - Pre-submission checklist for apps
