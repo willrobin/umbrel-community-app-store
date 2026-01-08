@@ -4,7 +4,7 @@ services:
   app_proxy:
     environment:
       # Format: <app-id>_<docker-service-name>_1
-      APP_HOST: calcom_server_1
+      APP_HOST: kasa-calcom_server_1
       APP_PORT: 3000
 
   server:

@@ -1,5 +1,5 @@
 manifestVersion: 1
-id: azuracast
+id: kasa-azuracast
 name: AzuraCast
 tagline: Self-hosted radio streaming management suite
 icon: https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/frontend/public/img/logo.svg
