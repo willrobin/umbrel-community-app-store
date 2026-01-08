@@ -1,17 +1,42 @@
-## Umbrel Community App Store Template
+# Kasa Umbrel Community App Store (傘)
 
-This repository is a template to create an Umbrel Community App Store. These additional app stores allow developers to distribute applications without submitting to the [Official Umbrel App Store](https://github.com/getumbrel/umbrel-apps).
+Kasa (傘) bedeutet "Regenschirm" auf Japanisch und spielt auf Umbrels Schirm-Logo an. Dieser Store ist ein unabhängiger Community App Store und nicht mit dem offiziellen Umbrel Team verbunden.
 
-## How to use:
+## Aktuell verfuegbare Apps
 
-1. Start by clicking the "Use this template" button located above.
-2. Assign an ID and name to your app store within the `umbrel-app-store.yml` file. This file specifies two important attributes:
-    - `id` - Acts as a unique prefix for every app within your Community App Store. You must start your application's ID with your app store's ID. For instance, in this template, the app store ID is `kasa`, and there's an app named `hello world`. Consequently, the app's ID should be: `kasa-hello-world`.
-    - `name` - This is the name of the Community App Store displayed in the umbrelOS UI.
-3. Change the name of the `apps/kasa-hello-world` folder to match your app's ID. The app ID is for you to decide. For example, if your app store ID is `whistles`, and your app is named My Video Downloader, you could set its app ID to `whistles-my-video-downloader`, and rename the folder accordingly. Then run `./scripts/publish.sh` to expose apps at repo root for Umbrel.
-4. Next, enter your app's listing details in the `apps/whistles-my-video-downloader/umbrel-app.yml`. These are displayed in the umbrelOS UI.
-5. Include the necessary Docker services in `apps/whistles-my-video-downloader/docker-compose.yml`.
-6. That's it! Your Community App Store, featuring your unique app, is now set up and ready to go. To use your Community App Store, you can add its GitHub url the umbrelOS user interface as shown in the following demo:
+| # | Logo | App | Beschreibung | Port |
+| :-: | :-: | :-- | :-- | :-: |
+| 1 | <img height="28" src="https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/frontend/public/img/logo.svg" /> | [AzuraCast](apps/kasa-azuracast) | Self-hosted Radio-Streaming und Stationsverwaltung | 3004 |
+| 2 | <img height="28" src="https://cal.com/android-chrome-512x512.png" /> | [Cal.com](apps/kasa-calcom) | Open-source Scheduling fuer Teams und Einzelpersonen | 3002 |
+| 3 | <img height="28" src="https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png" /> | [Paperless-AI](apps/kasa-paperless-ai) | AI-Tagging und RAG-Suche fuer Paperless-ngx | 3001 |
+| 4 | <img height="28" src="https://raw.githubusercontent.com/icereed/paperless-gpt/main/web-app/src/assets/logo.png" /> | [Paperless-GPT](apps/kasa-paperless-gpt) | LLM-gestuetzte OCR und Tagging fuer Paperless-ngx | 3003 |
 
+## Hinweise zu Abhaengigkeiten
+- Paperless-AI und Paperless-GPT benoetigen eine laufende Paperless-ngx Instanz.
+- Fuer AI-Funktionen wird ein LLM Provider benoetigt (z. B. Ollama oder OpenAI). Siehe die jeweiligen App-READMEs.
 
-https://user-images.githubusercontent.com/10330103/197889452-e5cd7e96-3233-4a09-b475-94b754adc7a3.mp4
+## App Store hinzufuegen
+1) Umbrel UI oeffnen -> App Store -> Community App Stores.
+2) Diese Repo-URL hinzufuegen.
+3) Apps installieren wie gewohnt.
+
+Demo: https://user-images.githubusercontent.com/10330103/197889452-e5cd7e96-3233-4a09-b475-94b754adc7a3.mp4
+
+## Ports und Konflikte
+- Kasa nutzt die UI-Ports 3001-3004.
+- AzuraCast oeffnet zusaetzlich Streaming-Ports 20000-20050.
+- Abgleich mit Denny's Umbrel Community App Store (Stand 2026-01-08): keine Konflikte fuer 3001-3004; der AzuraCast-Range wurde bewusst ausserhalb der dort genutzten 8xxx-Ports gelegt.
+
+## Datenpfade und Variablen
+- App-Daten liegen unter `${APP_DATA_DIR}` (Umbrel setzt dies pro App).
+- In den Compose-Dateien verwenden wir `${APP_DATA_DIR}` als Standard.
+
+## Entwicklung / Workflow
+1) `./scripts/new-app.sh <app-id> "<App Name>"`
+2) App-Dateien bearbeiten in `apps/<app-id>/`.
+3) `./scripts/publish.sh`
+4) `./scripts/validate.sh`
+
+## Beitrag und Support
+- App-Ideen und Issues gern via GitHub.
+- Bitte keine Secrets in Compose oder Repo ablegen.

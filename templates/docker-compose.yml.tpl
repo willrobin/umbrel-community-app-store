@@ -12,10 +12,5 @@ services:
     user: "1000:1000"
     init: true
     restart: unless-stopped
-    ports:
-      - "__APP_PORT__:__APP_PORT__"
     volumes:
-      - __APP_ID___data:/data
-
-volumes:
-  __APP_ID___data:
+      - ${APP_DATA_DIR}/data:/data

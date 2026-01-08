@@ -21,8 +21,8 @@ services:
       PGID: "1000"
       PAPERLESS_AI_PORT: "3000"
       RAG_SERVICE_URL: "http://localhost:8000"
-      RAG_SERVICE_ENABLED: "true"
+      RAG_SERVICE_ENABLED: "false"
     volumes:
-      - ${APP_DATA_DIR}/paperless-ai:/app/data
+      - ${APP_DATA_DIR}:/app/data
 
 volumes: {}

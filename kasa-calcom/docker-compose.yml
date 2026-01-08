@@ -31,10 +31,10 @@ services:
       POSTGRES_USER: "calcom"
       POSTGRES_PASSWORD: "${APP_SEED}"
     volumes:
-      - ${APP_DATA_DIR}/calcom/db:/var/lib/postgresql/data
+      - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
-      - ${APP_DATA_DIR}/calcom/redis:/data
+      - ${APP_DATA_DIR}/redis:/data

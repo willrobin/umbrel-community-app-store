@@ -7,6 +7,7 @@ These rules apply to Codex/Claude Code contributors working in this repo.
 - Required per app: `umbrel-app.yml`, `docker-compose.yml`, `README.md`.
 - Templates live in `templates/` and should be kept minimal.
 - Scripts live in `scripts/` and must be portable (macOS bash).
+- Prefer Umbrel-provided env vars for paths and hostnames (see below).
 
 ## Do / Don't
 - Do keep changes small, scoped, and well-explained.
@@ -18,8 +19,9 @@ These rules apply to Codex/Claude Code contributors working in this repo.
 ## Workflow
 1) Scaffold: `./scripts/new-app.sh <app-id> "<App Name>"`
 2) Edit app files and README.
-3) Validate: `./scripts/validate.sh`
-4) Commit with message style: `type(scope): short summary` (example: `chore(apps): add foo`).
+3) Publish: `./scripts/publish.sh`
+4) Validate: `./scripts/validate.sh`
+5) Commit with message style: `type(scope): short summary` (example: `chore(apps): add foo`).
 
 ## PR / Commit Guidelines
 - Keep commits small and reviewable.
@@ -31,3 +33,16 @@ These rules apply to Codex/Claude Code contributors working in this repo.
 - Avoid exposing unnecessary ports.
 - Persist only required data via volumes.
 - Do not store secrets in repo or compose files.
+
+## Umbrel Env Vars (umbrelOS 1.5 docs + verified)
+- Paths: `APP_DATA_DIR`, `APP_BITCOIN_DATA_DIR`, `APP_LIGHTNING_NODE_DATA_DIR`.
+- Root path: `UMBREL_ROOT` (optional; prefer `APP_DATA_DIR` in app compose files).
+- Host/device: `DEVICE_HOSTNAME`, `DEVICE_DOMAIN_NAME`.
+- App secrets: `APP_PASSWORD`, `APP_SEED`.
+- Tor: `TOR_PROXY_IP`, `TOR_PROXY_PORT`, `APP_HIDDEN_SERVICE`.
+- Bitcoin RPC (if app depends on Bitcoin): `APP_BITCOIN_NODE_IP`, `APP_BITCOIN_RPC_PORT`, `APP_BITCOIN_RPC_USER`, `APP_BITCOIN_RPC_PASS`.
+
+## Ports (Umbrel apps)
+- Keep `umbrel-app.yml` ports unique across apps and in the typical Umbrel range where possible.
+- Prefer `app_proxy` and avoid host `ports:` unless the app needs extra endpoints (streaming, etc.).
+- Document any exposed host ports in the app README.

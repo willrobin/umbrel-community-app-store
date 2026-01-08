@@ -13,8 +13,8 @@ workflows.
 - App UI: http://umbrel.local:3002
 - Default port: 3002
 - Data volumes:
-  - `${APP_DATA_DIR}/calcom/db` -> `/var/lib/postgresql/data`
-  - `${APP_DATA_DIR}/calcom/redis` -> `/data`
+  - `${APP_DATA_DIR}/db` -> `/var/lib/postgresql/data`
+  - `${APP_DATA_DIR}/redis` -> `/data`
 - Required environment:
   - `NEXTAUTH_URL` (public URL for the Umbrel app, default uses `$DEVICE_DOMAIN_NAME`)
   - `NEXTAUTH_SECRET` (defaults to `$APP_SEED`)

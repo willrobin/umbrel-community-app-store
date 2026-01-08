@@ -19,7 +19,10 @@ dashboard.
 
 ## Notes
 - AzuraCast manages station streaming internally. If you need external access
-  to radio ports for non-web clients, add explicit port mappings in
-  `apps/kasa-azuracast/docker-compose.yml`.
+  to radio ports for non-web clients, the default compose exposes ports
+  20000-20050 for station streams.
+- To change the stream port range, update the `ports` mapping in
+  `apps/kasa-azuracast/docker-compose.yml` and adjust AzuraCast's port range
+  settings as described in the upstream Docker docs.
 - The database credentials are internal defaults. Change them if you plan to
   expose the database outside Umbrel.

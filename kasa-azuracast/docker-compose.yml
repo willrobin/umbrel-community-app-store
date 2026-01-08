@@ -23,6 +23,8 @@ services:
       MYSQL_PASSWORD: "${APP_SEED}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      AUTO_ASSIGN_PORT_MIN: "20000"
+      AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
       - ${APP_DATA_DIR}/azuracast:/var/azuracast
 
@@ -33,6 +35,8 @@ services:
     depends_on:
       - db
       - redis
+    ports:
+      - "20000-20050:20000-20050"
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: 3306
@@ -41,6 +45,8 @@ services:
       MYSQL_PASSWORD: "${APP_SEED}"
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      AUTO_ASSIGN_PORT_MIN: "20000"
+      AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
       - ${APP_DATA_DIR}/azuracast:/var/azuracast
     command: stations

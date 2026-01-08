@@ -74,7 +74,7 @@ Short description of the app.
 
 ## Configuration
 - Ports: 3000
-- Volumes: __APP_ID___data -> /data
+- Volumes: ${APP_DATA_DIR}/data -> /data
 
 ## Notes
 Replace placeholder values in `umbrel-app.yml` and `docker-compose.yml`.

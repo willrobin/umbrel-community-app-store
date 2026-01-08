@@ -5,7 +5,7 @@ tagline: AI OCR and tagging for paperless-ngx
 icon: https://raw.githubusercontent.com/icereed/paperless-gpt/main/web-app/src/assets/logo.png
 category: Productivity
 version: "0.1.0"
-port: 8080
+port: 3003
 description: >-
   AI-powered companion for paperless-ngx that enhances OCR with LLMs and
   automatically suggests titles, tags, correspondents, and custom fields.
