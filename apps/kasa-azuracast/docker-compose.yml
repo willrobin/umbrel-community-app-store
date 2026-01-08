@@ -26,7 +26,12 @@ services:
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
-      - ${APP_DATA_DIR}/azuracast:/var/azuracast
+      - ${APP_DATA_DIR}/stations:/var/azuracast/stations
+      - ${APP_DATA_DIR}/backups:/var/azuracast/backups
+      - ${APP_DATA_DIR}/uploads:/var/azuracast/storage/uploads
+      - ${APP_DATA_DIR}/sftpgo:/var/azuracast/storage/sftpgo
+      - ${APP_DATA_DIR}/geoip:/var/azuracast/storage/geoip
+      - ${APP_DATA_DIR}/acme:/var/azuracast/storage/acme
 
   stations:
     image: ghcr.io/azuracast/azuracast:stable
@@ -48,7 +53,12 @@ services:
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
-      - ${APP_DATA_DIR}/azuracast:/var/azuracast
+      - ${APP_DATA_DIR}/stations:/var/azuracast/stations
+      - ${APP_DATA_DIR}/backups:/var/azuracast/backups
+      - ${APP_DATA_DIR}/uploads:/var/azuracast/storage/uploads
+      - ${APP_DATA_DIR}/sftpgo:/var/azuracast/storage/sftpgo
+      - ${APP_DATA_DIR}/geoip:/var/azuracast/storage/geoip
+      - ${APP_DATA_DIR}/acme:/var/azuracast/storage/acme
     command: stations
 
   db:
@@ -60,10 +70,10 @@ services:
       MYSQL_USER: azuracast
       MYSQL_PASSWORD: "${APP_SEED}"
     volumes:
-      - ${APP_DATA_DIR}/azuracast/db:/var/lib/mysql
+      - ${APP_DATA_DIR}/db:/var/lib/mysql
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
-      - ${APP_DATA_DIR}/azuracast/redis:/data
+      - ${APP_DATA_DIR}/redis:/data

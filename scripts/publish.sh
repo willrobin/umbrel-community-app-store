@@ -31,6 +31,11 @@ for entry in "${app_entries[@]}"; do
     cp "$entry/$req" "$root_dir/$req"
   done
 
+  # Copy icon.png if it exists (optional)
+  if [[ -f "$entry/icon.png" ]]; then
+    cp "$entry/icon.png" "$root_dir/icon.png"
+  fi
+
 done
 
 echo "Published apps to repo root."
