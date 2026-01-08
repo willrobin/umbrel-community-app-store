@@ -6,10 +6,10 @@ Kasa (傘) bedeutet "Regenschirm" auf Japanisch und spielt auf Umbrels Schirm-Lo
 
 | # | Logo | App | Beschreibung | Port |
 | :-: | :-: | :-- | :-- | :-: |
-| 1 | <img height="28" src="https://www.azuracast.com/img/logo.png" /> | [AzuraCast](apps/kasa-azuracast) | Self-hosted Radio-Streaming und Stationsverwaltung | 3004 |
+| 1 | <img height="28" src="apps/kasa-azuracast/icon.png" /> | [AzuraCast](apps/kasa-azuracast) | Self-hosted Radio-Streaming und Stationsverwaltung | 3004 |
 | 2 | <img height="28" src="https://cal.com/android-chrome-512x512.png" /> | [Cal.com](apps/kasa-calcom) | Open-source Scheduling für Teams und Einzelpersonen | 3002 |
 | 3 | <img height="28" src="https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png" /> | [Paperless-AI](apps/kasa-paperless-ai) | AI-Tagging und RAG-Suche für Paperless-ngx | 3001 |
-| 4 | <img height="28" src="https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-paperless-gpt/icon.png" /> | [Paperless-GPT](apps/kasa-paperless-gpt) | LLM-gestützte OCR und Tagging für Paperless-ngx | 3003 |
+| 4 | <img height="28" src="apps/kasa-paperless-gpt/icon.png" /> | [Paperless-GPT](apps/kasa-paperless-gpt) | LLM-gestützte OCR und Tagging für Paperless-ngx | 3003 |
 
 ## Hinweise zu Abhängigkeiten
 - Paperless-AI und Paperless-GPT benötigen eine laufende Paperless-ngx Instanz.
