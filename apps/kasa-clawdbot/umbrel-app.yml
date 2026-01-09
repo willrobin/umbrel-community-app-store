@@ -1,0 +1,27 @@
+manifestVersion: 1
+id: kasa-clawdbot
+name: ClawdBot
+tagline: Your own personal AI assistant
+icon: https://raw.githubusercontent.com/clawdbot/clawdbot/main/README-header.png
+category: Utilities
+version: "2026.1.8-2"
+port: 3006
+description: >-
+  ClawdBot is a personal AI assistant that runs on your own devices. It integrates seamlessly with popular messaging platforms including WhatsApp, Telegram, Slack, Discord, Signal, iMessage, and WebChat, providing a local-first, fast, and always-on assistant experience.
+
+
+  Features include multi-provider messaging support, voice capabilities, live Canvas interface, sandboxed tool execution, and comprehensive skills system. ClawdBot uses Claude or OpenAI models and keeps all your data under your control.
+
+developer: ClawdBot Team
+website: https://github.com/clawdbot/clawdbot
+submitter: Kasa
+submission: https://github.com/willrobin/umbrel-community-app-store
+repo: https://github.com/clawdbot/clawdbot
+support: https://github.com/clawdbot/clawdbot/issues
+gallery: []
+releaseNotes: >-
+  Initial release on Kasa store. Version 2026.1.8-2 includes NPM package fixes and containerized gateway/CLI setup.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

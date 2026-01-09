@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: kasa-clawdbot_gateway_1
+      APP_PORT: 18789
+
+  gateway:
+    image: node:22-bookworm
+    init: true
+    restart: unless-stopped
+    working_dir: /home/node
+    user: "1000:1000"
+    environment:
+      NODE_ENV: production
+      HOME: /home/node
+    command: >
+      sh -c "
+      npm install -g clawdbot@2026.1.8-2 &&
+      exec clawdbot gateway --port 18789 --bind 0.0.0.0
+      "
+    volumes:
+      - ${APP_DATA_DIR}/config:/home/node/.clawdbot
+      - ${APP_DATA_DIR}/workspace:/home/node/clawd
+    ports:
+      - "18789:18789"
+      - "18790:18790"
