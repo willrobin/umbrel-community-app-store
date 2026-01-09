@@ -2,7 +2,7 @@ manifestVersion: 1
 id: kasa-paperless-gpt
 name: Paperless-GPT
 tagline: AI OCR and tagging for paperless-ngx
-icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-paperless-gpt/icon.png
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-paperless-gpt/icon.png
 category: Productivity
 version: "0.1.0"
 port: 3003
