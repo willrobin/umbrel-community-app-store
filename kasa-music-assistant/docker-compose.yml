@@ -1,0 +1,22 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Format: <app-id>_<docker-service-name>_1
+      APP_HOST: kasa-music-assistant_server_1
+      APP_PORT: 8095
+
+  server:
+    image: ghcr.io/music-assistant/server:latest
+    user: "1000:1000"
+    init: true
+    restart: unless-stopped
+    ports:
+      - "8097:8097"  # Streaming server (for Home Assistant & other clients)
+    environment:
+      # Music Assistant configuration
+      TZ: UTC
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+      - ${APP_DATA_DIR}/media:/media  # Optional: Mount for local music files
