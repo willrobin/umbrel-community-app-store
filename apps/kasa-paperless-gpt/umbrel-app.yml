@@ -1,25 +1,52 @@
 manifestVersion: 1
 id: kasa-paperless-gpt
 name: Paperless-GPT
-tagline: AI OCR and tagging for paperless-ngx
-icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-paperless-gpt/icon.png
-category: Productivity
-version: "0.1.0"
+tagline: LLM-powered document enhancement for Paperless-ngx
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-paperless-gpt/icon.png
+category: productivity
+version: "0.24.0"
 port: 3003
 description: >-
-  AI-powered companion for paperless-ngx that enhances OCR with LLMs and
-  automatically suggests titles, tags, correspondents, and custom fields.
+  Paperless-GPT is an AI-powered companion for Paperless-ngx that enhances document
+  processing using large language models. It automatically suggests titles, tags,
+  correspondents, and custom fields based on document content.
+
+
+  Features include:
+
+  - Enhanced OCR with LLM post-processing
+
+  - Automatic title generation from content
+
+  - Smart tag suggestions based on document context
+
+  - Correspondent detection and assignment
+
+  - Custom field extraction and population
+
+  - Support for Ollama, OpenAI, and Anthropic Claude
+
+  - Automatic document type assignment
+
+  - Customizable prompt templates
+
+  - Manual and automatic processing modes
+
+
+  Paperless-GPT works alongside your existing Paperless-ngx installation, processing
+  tagged documents and enriching metadata to keep your document archive organized.
 
 developer: Icereed
 website: https://github.com/icereed/paperless-gpt
 submitter: Kasa
-submission: https://github.com/icereed/paperless-gpt
+submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/icereed/paperless-gpt
 support: https://github.com/icereed/paperless-gpt/issues
 gallery:
   - https://raw.githubusercontent.com/icereed/paperless-gpt/main/paperless-gpt-screenshot.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  v1.0.0 - Initial stable release for Kasa community store.
+  Based on Paperless-GPT v0.24.0 with Anthropic Claude support.
 dependencies: []
 path: ""
 defaultUsername: ""

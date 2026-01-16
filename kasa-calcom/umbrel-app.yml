@@ -1,25 +1,51 @@
 manifestVersion: 1
 id: kasa-calcom
 name: Cal.com
-tagline: Open-source scheduling for individuals and teams
-icon: https://cal.com/android-chrome-512x512.png
-category: Productivity
-version: "0.1.0"
+tagline: Open-source scheduling infrastructure
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-calcom/icon.png
+category: productivity
+version: "6.1.0"
 port: 3002
 description: >-
-  Cal.com is an open-source scheduling platform for individuals and teams.
-  Create booking pages, manage availability, and coordinate meetings with
-  flexible workflows and integrations.
+  Cal.com is the open-source scheduling infrastructure that gives you full control
+  over your calendar and booking workflows. Whether you're an individual professional
+  or a large team, Cal.com provides the tools to manage your availability and
+  coordinate meetings efficiently.
 
-developer: Cal.com
+
+  Features include:
+
+  - Customizable booking pages with your branding
+
+  - Multiple calendar integrations (Google, Outlook, Apple)
+
+  - Team scheduling with round-robin and collective availability
+
+  - Automated reminders and notifications
+
+  - Video conferencing integrations (Zoom, Google Meet, etc.)
+
+  - Payment collection for paid appointments
+
+  - Workflow automation and webhooks
+
+  - Self-hosted with full data control
+
+
+  Cal.com is the privacy-focused alternative to Calendly, giving you ownership
+  of your scheduling data while providing enterprise-grade features.
+
+developer: Cal.com, Inc.
 website: https://cal.com
 submitter: Kasa
-submission: https://github.com/calcom/cal.com
+submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/calcom/cal.com
-support: https://github.com/calcom/cal.com/issues
-gallery: []
+support: https://github.com/calcom/cal.com/discussions
+gallery:
+  - https://raw.githubusercontent.com/calcom/cal.com/main/apps/web/public/screenshots/booking-page.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  v1.0.0 - Initial stable release for Kasa community store.
+  Based on Cal.com v6.1.0.
 dependencies: []
 path: ""
 defaultUsername: ""
