@@ -10,6 +10,7 @@ Kasa (傘) bedeutet "Regenschirm" auf Japanisch und spielt auf Umbrels Schirm-Lo
 | 2 | <img height="28" src="https://cal.com/android-chrome-512x512.png" /> | [Cal.com](apps/kasa-calcom) | Open-source Scheduling für Teams und Einzelpersonen | 3002 |
 | 3 | <img height="28" src="https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png" /> | [Paperless-AI](apps/kasa-paperless-ai) | AI-Tagging und RAG-Suche für Paperless-ngx | 3001 |
 | 4 | <img height="28" src="apps/kasa-paperless-gpt/icon.png" /> | [Paperless-GPT](apps/kasa-paperless-gpt) | LLM-gestützte OCR und Tagging für Paperless-ngx | 3003 |
+| 5 | <img height="28" src="apps/kasa-music-assistant/icon.png" /> | [Music Assistant](apps/kasa-music-assistant) | Unified Music Library Manager mit Multi-Room Audio | 3005 |
 
 ## Hinweise zu Abhängigkeiten
 - Paperless-AI und Paperless-GPT benötigen eine laufende Paperless-ngx Instanz.
@@ -23,9 +24,10 @@ Kasa (傘) bedeutet "Regenschirm" auf Japanisch und spielt auf Umbrels Schirm-Lo
 Demo: https://user-images.githubusercontent.com/10330103/197889452-e5cd7e96-3233-4a09-b475-94b754adc7a3.mp4
 
 ## Ports und Konflikte
-- Kasa nutzt die UI-Ports 3001-3004.
+- Kasa nutzt die UI-Ports 3001-3005.
 - AzuraCast öffnet zusätzlich Streaming-Ports 20000-20050.
-- Abgleich mit Denny's Umbrel Community App Store (Stand 2026-01-08): keine Konflikte für 3001-3004; der AzuraCast-Range wurde bewusst außerhalb der dort genutzten 8xxx-Ports gelegt.
+- Music Assistant öffnet zusätzlich Ports 8095 (Web UI/API), 8097 (Audio Streaming) und 3483 (Slimproto).
+- Abgleich mit Denny's Umbrel Community App Store (Stand 2026-01-08): keine Konflikte für 3001-3005; der AzuraCast-Range wurde bewusst außerhalb der dort genutzten 8xxx-Ports gelegt.
 
 ## Datenpfade und Variablen
 - App-Daten liegen unter `${APP_DATA_DIR}` (Umbrel setzt dies pro App).
