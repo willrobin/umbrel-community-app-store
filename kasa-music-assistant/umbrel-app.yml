@@ -33,11 +33,11 @@ description: >-
   Home Assistant Integration:
 
   This app is designed to work seamlessly with Home Assistant on Umbrel.
-  Music Assistant exposes ports 8095 (Web UI/API) and 8097 (Audio Streaming)
+  Music Assistant exposes ports 18095 (Web UI/API) and 8097 (Audio Streaming)
   for direct communication. Home Assistant will automatically discover
   Music Assistant on your network. You can also manually add it in Home
   Assistant via Settings > Devices & Services > Add Integration >
-  Music Assistant using the address: http://umbrel.local:8095
+  Music Assistant using the address: http://umbrel.local:18095
 
 
   Requirements:

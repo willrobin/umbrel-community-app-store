@@ -13,7 +13,8 @@ services:
     restart: unless-stopped
     ports:
       # Web UI and API - used by Home Assistant for integration
-      - "8095:8095"
+      # Using 18095 on host to avoid conflicts with other apps
+      - "18095:8095"
       # Audio streaming port - players connect here for audio
       - "8097:8097"
       # Slimproto port for Squeezebox/Logitech Media Server players
