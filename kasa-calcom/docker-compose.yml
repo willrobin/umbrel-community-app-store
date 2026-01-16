@@ -12,11 +12,13 @@ services:
     init: true
     restart: unless-stopped
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
-      DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
-      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
+      DATABASE_URL: "postgresql://calcom:calcom@db:5432/calcom"
+      DATABASE_DIRECT_URL: "postgresql://calcom:calcom@db:5432/calcom"
       REDIS_URL: "redis://redis:6379"
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_SECRET: "${APP_SEED}"
@@ -29,12 +31,24 @@ services:
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
-      POSTGRES_PASSWORD: "${APP_SEED}"
+      POSTGRES_PASSWORD: "calcom"
     volumes:
       - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
     volumes:
       - ${APP_DATA_DIR}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
