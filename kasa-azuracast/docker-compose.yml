@@ -77,5 +77,7 @@ services:
     image: redis:7-alpine
     container_name: kasa-azuracast_redis_1
     restart: unless-stopped
+    # Disable RDB snapshots to avoid memory overcommit warnings in containerized environments
+    command: redis-server --save ""
     volumes:
       - ${APP_DATA_DIR}/azuracast/redis:/data
