@@ -3,25 +3,28 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
       APP_HOST: kasa-azuracast_web_1
       APP_PORT: 80
 
   web:
     image: ghcr.io/azuracast/azuracast:stable
+    container_name: kasa-azuracast_web_1
     init: true
     restart: unless-stopped
     depends_on:
-      - db
-      - redis
-      - stations
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
     environment:
-      MYSQL_HOST: db
+      # Fix zombie process reaping when tini is not PID 1
+      TINI_SUBREAPER: "1"
+      MYSQL_HOST: kasa-azuracast_db_1
       MYSQL_PORT: 3306
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
       MYSQL_PASSWORD: "${APP_SEED}"
-      REDIS_HOST: redis
+      REDIS_HOST: kasa-azuracast_redis_1
       REDIS_PORT: 6379
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
@@ -30,20 +33,27 @@ services:
 
   stations:
     image: ghcr.io/azuracast/azuracast:stable
+    container_name: kasa-azuracast_stations_1
     init: true
     restart: unless-stopped
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
+      web:
+        condition: service_started
     ports:
       - "20000-20050:20000-20050"
     environment:
-      MYSQL_HOST: db
+      # Fix zombie process reaping when tini is not PID 1
+      TINI_SUBREAPER: "1"
+      MYSQL_HOST: kasa-azuracast_db_1
       MYSQL_PORT: 3306
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
       MYSQL_PASSWORD: "${APP_SEED}"
-      REDIS_HOST: redis
+      REDIS_HOST: kasa-azuracast_redis_1
       REDIS_PORT: 6379
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
@@ -53,6 +63,7 @@ services:
 
   db:
     image: mariadb:10.11
+    container_name: kasa-azuracast_db_1
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: "${APP_SEED}"
@@ -64,6 +75,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: kasa-azuracast_redis_1
     restart: unless-stopped
     volumes:
       - ${APP_DATA_DIR}/azuracast/redis:/data
