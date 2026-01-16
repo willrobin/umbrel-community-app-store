@@ -17,27 +17,27 @@ services:
       redis:
         condition: service_started
     environment:
-      # Database
+      # Database connection
       DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
       DATABASE_DIRECT_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
-      # Redis
+      # Redis connection
       REDIS_URL: "redis://redis:6379"
-      # Auth
+      # Authentication
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_SECRET: "${APP_SEED}"
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
-      # Runtime
+      # Runtime configuration
       NODE_ENV: "production"
       NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXT_PUBLIC_API_V2_URL: "http://${DEVICE_DOMAIN_NAME}:3002/api/v2"
-      # Disable telemetry
+      # Disable telemetry for privacy
       CALCOM_TELEMETRY_DISABLED: "1"
 
   db:
     image: postgres:15-alpine
     restart: on-failure
     stop_grace_period: 1m
-    user: "1000:1000"
+    # Note: Do NOT set user - postgres needs to run as the postgres user for proper initialization
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
@@ -49,12 +49,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   redis:
     image: redis:7-alpine
     restart: on-failure
     stop_grace_period: 30s
-    user: "1000:1000"
     volumes:
       - ${APP_DATA_DIR}/data/redis:/data

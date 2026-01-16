@@ -7,17 +7,12 @@ services:
       APP_PORT: 3000
 
   server:
-    image: clusterzx/paperless-ai:v3.0.9
-    user: "1000:1000"
+    image: clusterzx/paperless-ai:latest
     init: true
     restart: on-failure
     stop_grace_period: 30s
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
     environment:
-      # User/Group IDs
+      # User/Group IDs for file permissions
       PUID: "1000"
       PGID: "1000"
       # Application settings
