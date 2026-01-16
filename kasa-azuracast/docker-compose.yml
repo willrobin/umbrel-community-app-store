@@ -7,7 +7,7 @@ services:
       APP_PORT: 80
 
   web:
-    image: ghcr.io/azuracast/azuracast:0.19.4
+    image: ghcr.io/azuracast/azuracast:rolling
     init: true
     restart: on-failure
     stop_grace_period: 1m
@@ -17,24 +17,37 @@ services:
       redis:
         condition: service_started
     environment:
+      # Database connection
       MYSQL_HOST: db
       MYSQL_PORT: "3306"
       MYSQL_DATABASE: azuracast
       MYSQL_USER: azuracast
       MYSQL_PASSWORD: "${APP_SEED}"
+      # Redis connection
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+      ENABLE_REDIS: "true"
+      # Streaming port range
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
-      ENABLE_REDIS: "true"
+      # Fix tini zombie process warning
+      TINI_SUBREAPER: "1"
+      # Initial URL for setup
       INIT_BASE_URL: "http://${DEVICE_DOMAIN_NAME}:3004"
     volumes:
-      - ${APP_DATA_DIR}/data/azuracast:/var/azuracast
+      # Mount individual persistent directories instead of entire /var/azuracast
+      # This allows the container to create its own directory structure
+      - ${APP_DATA_DIR}/data/stations:/var/azuracast/stations
+      - ${APP_DATA_DIR}/data/uploads:/var/azuracast/uploads
+      - ${APP_DATA_DIR}/data/backups:/var/azuracast/backups
+      - ${APP_DATA_DIR}/data/sftpgo:/var/azuracast/sftpgo/persist
+      - ${APP_DATA_DIR}/data/geoip:/var/azuracast/geoip
+      - ${APP_DATA_DIR}/data/acme:/var/azuracast/acme
     ports:
       - "20000-20050:20000-20050"
 
   db:
-    image: mariadb:10.11
+    image: mariadb:11
     restart: on-failure
     stop_grace_period: 1m
     command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
@@ -51,12 +64,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s
 
   redis:
     image: redis:7-alpine
     restart: on-failure
     stop_grace_period: 30s
-    user: "1000:1000"
     volumes:
       - ${APP_DATA_DIR}/data/redis:/data
