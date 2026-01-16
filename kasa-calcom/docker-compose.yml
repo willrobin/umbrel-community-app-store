@@ -3,38 +3,58 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
       APP_HOST: kasa-calcom_server_1
       APP_PORT: 3000
 
   server:
-    image: ghcr.io/calcom/cal.com:latest
+    image: calcom/cal.com:v6.1.0
     init: true
-    restart: unless-stopped
+    restart: on-failure
+    stop_grace_period: 1m
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
+      # Database
       DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
       DATABASE_DIRECT_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
+      # Redis
       REDIS_URL: "redis://redis:6379"
+      # Auth
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_SECRET: "${APP_SEED}"
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
+      # Runtime
       NODE_ENV: "production"
+      NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
+      NEXT_PUBLIC_API_V2_URL: "http://${DEVICE_DOMAIN_NAME}:3002/api/v2"
+      # Disable telemetry
+      CALCOM_TELEMETRY_DISABLED: "1"
 
   db:
     image: postgres:15-alpine
-    restart: unless-stopped
+    restart: on-failure
+    stop_grace_period: 1m
+    user: "1000:1000"
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
       POSTGRES_PASSWORD: "${APP_SEED}"
     volumes:
-      - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
+      - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
-    restart: unless-stopped
+    restart: on-failure
+    stop_grace_period: 30s
+    user: "1000:1000"
     volumes:
-      - ${APP_DATA_DIR}/redis:/data
+      - ${APP_DATA_DIR}/data/redis:/data

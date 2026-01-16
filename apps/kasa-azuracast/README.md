@@ -1,28 +1,58 @@
 # AzuraCast
 
-AzuraCast is a self-hosted, all-in-one web radio management suite. Run multiple
-stations, manage media libraries, and stream to listeners from a single
-dashboard.
+AzuraCast is a self-hosted, all-in-one web radio management suite. Run multiple radio stations, manage media libraries, create playlists, and stream to listeners worldwide from a single dashboard.
+
+## Features
+
+- Unlimited radio stations per installation
+- Web-based station management dashboard
+- Built-in AutoDJ with smart playlists
+- Live DJ support with Icecast and SHOUTcast
+- Listener statistics and analytics
+- Podcast and on-demand content support
+- Mobile-friendly web player
+- RESTful API for integrations
 
 ## Links
-- Upstream: https://github.com/AzuraCast/AzuraCast
-- Docs: https://docs.azuracast.com/
-- Issues: https://github.com/AzuraCast/AzuraCast/issues
+
+- **Website:** https://www.azuracast.com
+- **Documentation:** https://docs.azuracast.com
+- **Repository:** https://github.com/AzuraCast/AzuraCast
+- **Support:** https://github.com/AzuraCast/AzuraCast/discussions
+
+## Access
+
+| Service | URL |
+|:--------|:----|
+| Web UI | `http://umbrel.local:3004` |
+| Stream Ports | `20000-20050` |
 
 ## Configuration
-- App UI: http://umbrel.local:3004
-- Default port: 3004
-- Data volumes:
-  - `${APP_DATA_DIR}/azuracast` -> `/var/azuracast`
-  - `${APP_DATA_DIR}/azuracast/db` -> `/var/lib/mysql`
-  - `${APP_DATA_DIR}/azuracast/redis` -> `/data`
+
+After installation, create your first admin account through the web interface. AzuraCast will guide you through initial setup.
+
+### Streaming Ports
+
+AzuraCast automatically assigns ports from the 20000-20050 range for your radio stations. These ports are exposed for external streaming clients and players.
+
+### Data Storage
+
+| Volume | Path |
+|:-------|:-----|
+| App data | `${APP_DATA_DIR}/data/azuracast` |
+| Database | `${APP_DATA_DIR}/data/db` |
+| Redis cache | `${APP_DATA_DIR}/data/redis` |
 
 ## Notes
-- AzuraCast manages station streaming internally. If you need external access
-  to radio ports for non-web clients, the default compose exposes ports
-  20000-20050 for station streams.
-- To change the stream port range, update the `ports` mapping in
-  `apps/kasa-azuracast/docker-compose.yml` and adjust AzuraCast's port range
-  settings as described in the upstream Docker docs.
-- The database credentials are internal defaults. Change them if you plan to
-  expose the database outside Umbrel.
+
+- Database credentials are automatically generated using Umbrel's secure seed mechanism
+- Streaming ports (20000-20050) are exposed directly for listener access
+- No external dependencies required - AzuraCast is fully self-contained
+
+## Developer
+
+**AzuraCast** - https://www.azuracast.com
+
+---
+
+*Submitted by [Kasa](https://github.com/willrobin/umbrel-community-app-store)*

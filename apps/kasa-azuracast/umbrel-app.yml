@@ -1,25 +1,52 @@
 manifestVersion: 1
 id: kasa-azuracast
 name: AzuraCast
-tagline: Self-hosted radio streaming management suite
-icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-azuracast/icon.png
-category: Media
-version: "0.1.0"
+tagline: Self-hosted web radio management suite
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-azuracast/icon.png
+category: media
+version: "0.19.0"
 port: 3004
 description: >-
-  AzuraCast is a self-hosted, all-in-one web radio management suite. Run
-  multiple stations, manage media libraries, and stream to listeners from a
-  single dashboard.
+  AzuraCast is a self-hosted, all-in-one web radio management suite. With AzuraCast,
+  you can run multiple radio stations from a single installation, manage media libraries,
+  create playlists, and stream to listeners worldwide.
+
+
+  Features include:
+
+  - Unlimited radio stations per installation
+
+  - Web-based station management dashboard
+
+  - Built-in AutoDJ with smart playlists
+
+  - Live DJ support with Icecast and SHOUTcast
+
+  - Listener statistics and analytics
+
+  - Podcast and on-demand content support
+
+  - Mobile-friendly web player
+
+  - RESTful API for integrations
+
+
+  AzuraCast supports multiple streaming formats and provides professional broadcasting
+  tools without requiring complex configuration.
 
 developer: AzuraCast
 website: https://www.azuracast.com
 submitter: Kasa
-submission: https://github.com/AzuraCast/AzuraCast
+submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/AzuraCast/AzuraCast
-support: https://github.com/AzuraCast/AzuraCast/issues
-gallery: []
+support: https://github.com/AzuraCast/AzuraCast/discussions
+gallery:
+  - https://www.azuracast.com/img/screenshots/dashboard.png
+  - https://www.azuracast.com/img/screenshots/station.png
+  - https://www.azuracast.com/img/screenshots/media.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  v1.0.0 - Initial stable release for Kasa community store.
+  Uses AzuraCast stable rolling release channel.
 dependencies: []
 path: ""
 defaultUsername: ""

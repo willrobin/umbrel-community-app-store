@@ -1,20 +1,44 @@
 manifestVersion: 1
 id: kasa-paperless-ai
 name: Paperless-AI
-tagline: AI tagging and RAG search for Paperless-ngx
-icon: https://raw.githubusercontent.com/clusterzx/paperless-ai/main/icon.png
-category: Productivity
-version: "1.0.0"
+tagline: AI-powered document processing for Paperless-ngx
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-paperless-ai/icon.png
+category: productivity
+version: "3.0.9"
 port: 3001
 description: >-
-  AI-powered extension for Paperless-ngx that provides automatic document
-  classification, smart tagging, and semantic search via OpenAI-compatible APIs
-  and Ollama.
+  Paperless-AI is an AI-powered extension for Paperless-ngx that automates document
+  processing using large language models. It provides intelligent document classification,
+  smart tagging, and semantic search capabilities.
+
+
+  Features include:
+
+  - Automatic document classification based on content
+
+  - Smart tagging with AI-generated suggestions
+
+  - Semantic search across your document library
+
+  - Support for OpenAI-compatible APIs and Ollama
+
+  - RAG (Retrieval Augmented Generation) for contextual queries
+
+  - Custom prompt templates for specialized workflows
+
+  - Batch processing for existing documents
+
+  - Privacy-focused with local LLM support
+
+
+  Paperless-AI seamlessly integrates with your existing Paperless-ngx installation,
+  enhancing your document management workflow with AI capabilities while keeping
+  your data private.
 
 developer: Clusterzx
 website: https://github.com/clusterzx/paperless-ai
 submitter: Kasa
-submission: https://github.com/clusterzx/paperless-ai
+submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/clusterzx/paperless-ai
 support: https://github.com/clusterzx/paperless-ai/issues
 gallery:
@@ -22,7 +46,8 @@ gallery:
   - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/dashboard.png
   - https://raw.githubusercontent.com/clusterzx/paperless-ai/main/ppairag.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  v1.0.0 - Initial stable release for Kasa community store.
+  Based on Paperless-AI v3.0.9.
 dependencies: []
 path: ""
 defaultUsername: ""
