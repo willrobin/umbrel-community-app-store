@@ -16,7 +16,7 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     environment:
       # Database connection
       DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
@@ -46,17 +46,31 @@ services:
     volumes:
       - ${APP_DATA_DIR}/data/db:/var/lib/postgresql/data
     healthcheck:
-      # Note: pg_isready alone is not sufficient - we must verify authentication works
-      # because Cal.com will fail if it connects before the user is fully created
-      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom && PGPASSWORD=$$POSTGRES_PASSWORD psql -U calcom -d calcom -c 'SELECT 1'"]
+      # Note: Must use -h localhost to force TCP connection which requires password auth
+      # Local socket connections use trust auth during init and would pass prematurely
+      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom -h localhost && PGPASSWORD=$$POSTGRES_PASSWORD psql -U calcom -d calcom -h localhost -c 'SELECT 1'"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 120s
+      retries: 15
+      start_period: 60s
 
   redis:
     image: redis:7-alpine
     restart: on-failure
     stop_grace_period: 30s
+    # Configure Redis to suppress memory overcommit warning and be more resilient
+    # - stop-writes-on-bgsave-error no: Prevents failures when background save fails
+    # - maxmemory-policy allkeys-lru: Evicts least recently used keys when memory is full
+    command: >
+      redis-server
+      --appendonly yes
+      --stop-writes-on-bgsave-error no
+      --maxmemory-policy allkeys-lru
     volumes:
       - ${APP_DATA_DIR}/data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
