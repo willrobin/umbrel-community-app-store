@@ -1,0 +1,40 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      # Proxy to the Music Assistant web interface
+      APP_HOST: kasa-music-assistant_server_1
+      APP_PORT: 8095
+
+  server:
+    image: ghcr.io/music-assistant/server:2.7.4
+    init: true
+    restart: unless-stopped
+    ports:
+      # Web UI and API - used by Home Assistant for integration
+      - "8095:8095"
+      # Audio streaming port - players connect here for audio
+      - "8097:8097"
+      # Slimproto port for Squeezebox/Logitech Media Server players
+      - "3483:3483"
+      - "3483:3483/udp"
+    environment:
+      # Log level: debug, info, warning, error
+      LOG_LEVEL: info
+    volumes:
+      # Persistent data directory
+      - ${APP_DATA_DIR}/data:/data
+      # Local music files - uses Umbrel's shared storage
+      - ${UMBREL_ROOT}/data/storage/music:/media/music
+      # Downloads folder for additional media access
+      - ${UMBREL_ROOT}/data/storage/downloads:/media/downloads
+    # Required capabilities for network discovery and Samba/NFS shares
+    cap_add:
+      - SYS_ADMIN
+      - DAC_READ_SEARCH
+      - NET_ADMIN
+      - NET_RAW
+    # Required for full player compatibility
+    security_opt:
+      - apparmor:unconfined

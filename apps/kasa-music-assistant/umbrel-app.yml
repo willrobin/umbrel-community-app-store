@@ -1,0 +1,63 @@
+manifestVersion: 1
+id: kasa-music-assistant
+name: Music Assistant
+tagline: Your music, your players - unified music library manager
+icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-music-assistant/icon.png
+category: Media
+version: "2.7.4"
+port: 3005
+description: >-
+  Music Assistant is a free, open-source media library manager that connects
+  to your streaming services and a wide range of connected speakers. It acts
+  as a central hub for all your music sources, providing a unified interface
+  to manage and play your music collection.
+
+
+  Key Features:
+
+  - Unified music library from multiple sources (Spotify, YouTube Music,
+    Tidal, Qobuz, local files, and more)
+
+  - Support for a wide range of players (Chromecast, Sonos, AirPlay,
+    Squeezebox, DLNA, and Home Assistant media players)
+
+  - Multi-room audio with synchronized playback
+
+  - Smart playlists and queue management
+
+  - High-quality audio streaming support
+
+  - Seamless Home Assistant integration
+
+
+  Home Assistant Integration:
+
+  This app is designed to work seamlessly with Home Assistant on Umbrel.
+  Music Assistant exposes ports 8095 (Web UI/API) and 8097 (Audio Streaming)
+  for direct communication. Home Assistant will automatically discover
+  Music Assistant on your network. You can also manually add it in Home
+  Assistant via Settings > Devices & Services > Add Integration >
+  Music Assistant using the address: http://umbrel.local:8095
+
+
+  Requirements:
+
+  - 64-bit system with at least 2GB RAM (4GB+ recommended)
+
+  - For local music files, mount your music directory to /media
+
+developer: Music Assistant
+website: https://music-assistant.io
+submitter: Kasa
+submission: https://github.com/music-assistant/server
+repo: https://github.com/music-assistant/server
+support: https://github.com/orgs/music-assistant/discussions
+gallery: []
+releaseNotes: >-
+  Initial release of Music Assistant for umbrelOS. Features full Home Assistant
+  integration support with automatic discovery, multi-room audio capabilities,
+  and support for numerous streaming services and players.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""
