@@ -24,7 +24,7 @@ Music Assistant is a free, open-source media library manager that unifies all yo
 | Port | Protocol | Purpose |
 |------|----------|---------|
 | 3005 | TCP | Umbrel UI proxy (internal) |
-| 8095 | TCP | Web UI and REST API |
+| 18095 | TCP | Web UI and REST API (Home Assistant integration) |
 | 8097 | TCP | Audio streaming to players |
 | 3483 | TCP/UDP | Slimproto (Squeezebox players) |
 
@@ -45,7 +45,7 @@ If automatic discovery doesn't work:
 1. In Home Assistant, go to **Settings** > **Devices & Services**
 2. Click **Add Integration**
 3. Search for **Music Assistant**
-4. Enter the server address: `http://umbrel.local:8095`
+4. Enter the server address: `http://umbrel.local:18095`
 
 ### Requirements
 
@@ -113,12 +113,12 @@ If automatic discovery doesn't work:
 ### Players Not Found
 
 1. Ensure your players are on the same network as Umbrel
-2. Check that firewall isn't blocking ports 8095, 8097
+2. Check that firewall isn't blocking ports 18095, 8097
 3. For Chromecast/AirPlay: mDNS discovery may need additional network configuration
 
 ### Home Assistant Can't Connect
 
-1. Verify Music Assistant is running: access `http://umbrel.local:8095`
+1. Verify Music Assistant is running: access `http://umbrel.local:18095`
 2. Check both apps are on the same Docker network
 3. Try using the IP address instead of hostname
 
