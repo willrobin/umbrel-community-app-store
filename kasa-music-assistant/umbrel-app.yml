@@ -1,0 +1,51 @@
+manifestVersion: 1
+id: kasa-music-assistant
+name: Music Assistant
+tagline: Your personal music streaming hub
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-music-assistant/icon.png
+category: media
+version: "2.7.4"
+port: 8095
+description: >-
+  Music Assistant is a free, open-source media library manager that connects
+  to your streaming services and a wide range of connected speakers. It serves
+  as a unified hub for all your music, whether stored locally or streamed from
+  online services.
+
+
+  Features include:
+
+  - Connect multiple music providers (Spotify, YouTube Music, Tidal, Qobuz, Subsonic, local files)
+
+  - Stream to various players (Home Assistant, Sonos, Chromecast, Airplay, Snapcast, DLNA)
+
+  - Unified library view across all connected sources
+
+  - Queue management with crossfade and gapless playback
+
+  - Artist and album metadata enrichment
+
+  - Multi-room audio synchronization
+
+  - Built-in equalizer and DSP features
+
+  - No cloud dependency - fully self-hosted
+
+
+  Music Assistant brings together your entire music collection and streaming
+  services into one beautiful, unified interface while keeping your data private.
+
+developer: Music Assistant
+website: https://music-assistant.io
+submitter: Kasa
+submission: https://github.com/willrobin/umbrel-community-app-store
+repo: https://github.com/music-assistant/server
+support: https://github.com/orgs/music-assistant/discussions
+gallery: []
+releaseNotes: >-
+  Initial release for umbrelOS with Music Assistant v2.7.4.
+  Includes web interface and streaming capabilities.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

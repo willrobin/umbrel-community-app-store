@@ -1,0 +1,28 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: kasa-music-assistant_server_1
+      APP_PORT: 8095
+
+  server:
+    image: ghcr.io/music-assistant/server:2.7.4
+    restart: on-failure
+    stop_grace_period: 30s
+    ports:
+      # Streaming port - required for players to receive audio
+      - "8097:8097"
+    volumes:
+      # Music Assistant data and configuration
+      - ${APP_DATA_DIR}/data:/data
+      # Optional: Mount your music library (uncomment and adjust path)
+      # - /path/to/your/music:/media:ro
+    environment:
+      # Log level (debug, info, warning, error)
+      LOG_LEVEL: info
+    cap_add:
+      - SYS_ADMIN
+      - DAC_READ_SEARCH
+    security_opt:
+      - apparmor:unconfined
