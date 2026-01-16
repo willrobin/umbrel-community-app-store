@@ -33,6 +33,8 @@ services:
       NODE_ENV: "production"
       # Disable telemetry for privacy
       CALCOM_TELEMETRY_DISABLED: "1"
+      # Skip app-store check during onboarding (fixes "packages/app-store" error)
+      NEXT_PUBLIC_IS_E2E: "1"
       # Required for reverse proxy setups
       NODE_TLS_REJECT_UNAUTHORIZED: "0"
       # License consent for self-hosting
