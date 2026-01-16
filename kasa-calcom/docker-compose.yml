@@ -8,7 +8,7 @@ services:
       APP_PORT: 3000
 
   server:
-    image: ghcr.io/calcom/cal.com:latest
+    image: calcom/cal.com:v6.1.0
     init: true
     restart: unless-stopped
     depends_on:
@@ -17,13 +17,41 @@ services:
       redis:
         condition: service_healthy
     environment:
+      # Database configuration
       DATABASE_URL: "postgresql://calcom:calcom@db:5432/calcom"
       DATABASE_DIRECT_URL: "postgresql://calcom:calcom@db:5432/calcom"
+      # Redis for caching and session management
       REDIS_URL: "redis://redis:6379"
+      # Authentication - critical for proper URL handling
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_SECRET: "${APP_SEED}"
+      # Public webapp URL - required for proper redirects
+      NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
+      # Encryption key for credentials
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
+      # Production mode
       NODE_ENV: "production"
+      # Disable telemetry for privacy
+      CALCOM_TELEMETRY_DISABLED: "1"
+      # Required for reverse proxy setups
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      # License consent for self-hosting
+      NEXT_PUBLIC_LICENSE_CONSENT: "agree"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    volumes:
+      # Persistent storage for uploads and cache
+      - ${APP_DATA_DIR}/uploads:/app/apps/web/public/uploads
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
 
   db:
     image: postgres:15-alpine
@@ -32,6 +60,8 @@ services:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
       POSTGRES_PASSWORD: "calcom"
+      # Optimize PostgreSQL for low-memory systems
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     volumes:
       - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
     healthcheck:
@@ -40,10 +70,17 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
       - ${APP_DATA_DIR}/redis:/data
     healthcheck:
@@ -52,3 +89,9 @@ services:
       timeout: 5s
       retries: 10
       start_period: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M

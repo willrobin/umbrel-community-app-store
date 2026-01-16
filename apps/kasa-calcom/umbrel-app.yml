@@ -4,12 +4,13 @@ name: Cal.com
 tagline: Open-source scheduling for individuals and teams
 icon: https://cal.com/android-chrome-512x512.png
 category: Productivity
-version: "0.1.0"
+version: "6.1.0"
 port: 3002
 description: >-
   Cal.com is an open-source scheduling platform for individuals and teams.
   Create booking pages, manage availability, and coordinate meetings with
-  flexible workflows and integrations.
+  flexible workflows and integrations. Self-host your own scheduling
+  infrastructure with full control over your data.
 
 developer: Cal.com
 website: https://cal.com
@@ -17,9 +18,12 @@ submitter: Kasa
 submission: https://github.com/calcom/cal.com
 repo: https://github.com/calcom/cal.com
 support: https://github.com/calcom/cal.com/issues
-gallery: []
+gallery:
+  - https://cal.com/og-image-default.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  Updated to Cal.com v6.1.0 with improved umbrelOS compatibility.
+  Fixed Docker image versioning, added proper health checks,
+  resource limits, and all required environment variables.
 dependencies: []
 path: ""
 defaultUsername: ""
