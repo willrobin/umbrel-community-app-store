@@ -10,65 +10,25 @@ services:
     image: ghcr.io/azuracast/azuracast:rolling
     init: true
     restart: on-failure
-    stop_grace_period: 1m
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_started
+    stop_grace_period: 2m
     environment:
-      # Database connection
-      MYSQL_HOST: db
-      MYSQL_PORT: "3306"
-      MYSQL_DATABASE: azuracast
-      MYSQL_USER: azuracast
-      MYSQL_PASSWORD: "${APP_SEED}"
-      # Redis connection
-      REDIS_HOST: redis
-      REDIS_PORT: "6379"
-      ENABLE_REDIS: "true"
       # Streaming port range
       AUTO_ASSIGN_PORT_MIN: "20000"
       AUTO_ASSIGN_PORT_MAX: "20050"
-      # Fix tini zombie process warning
-      TINI_SUBREAPER: "1"
       # Initial URL for setup
       INIT_BASE_URL: "http://${DEVICE_DOMAIN_NAME}:3004"
+      # Fix tini zombie process warning
+      TINI_SUBREAPER: "1"
     volumes:
-      # Mount individual persistent directories instead of entire /var/azuracast
-      # This allows the container to create its own directory structure
+      # KRITISCH: Interne MariaDB-Datenbank
+      - ${APP_DATA_DIR}/data/db:/var/lib/mysql
+      # Stationsdaten und Backups
       - ${APP_DATA_DIR}/data/stations:/var/azuracast/stations
-      - ${APP_DATA_DIR}/data/uploads:/var/azuracast/uploads
       - ${APP_DATA_DIR}/data/backups:/var/azuracast/backups
-      - ${APP_DATA_DIR}/data/sftpgo:/var/azuracast/sftpgo/persist
-      - ${APP_DATA_DIR}/data/geoip:/var/azuracast/geoip
-      - ${APP_DATA_DIR}/data/acme:/var/azuracast/acme
+      # Storage-Verzeichnisse
+      - ${APP_DATA_DIR}/data/uploads:/var/azuracast/storage/uploads
+      - ${APP_DATA_DIR}/data/sftpgo:/var/azuracast/storage/sftpgo
+      - ${APP_DATA_DIR}/data/geoip:/var/azuracast/storage/geoip
+      - ${APP_DATA_DIR}/data/acme:/var/azuracast/storage/acme
     ports:
       - "20000-20050:20000-20050"
-
-  db:
-    image: mariadb:11
-    restart: on-failure
-    stop_grace_period: 1m
-    command: --transaction-isolation=READ-COMMITTED --log-bin=binlog --binlog-format=ROW
-    environment:
-      MARIADB_ROOT_PASSWORD: "${APP_SEED}"
-      MARIADB_DATABASE: azuracast
-      MARIADB_USER: azuracast
-      MARIADB_PASSWORD: "${APP_SEED}"
-      MARIADB_AUTO_UPGRADE: "1"
-    volumes:
-      - ${APP_DATA_DIR}/data/db:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-
-  redis:
-    image: redis:7-alpine
-    restart: on-failure
-    stop_grace_period: 30s
-    volumes:
-      - ${APP_DATA_DIR}/data/redis:/data

@@ -4,7 +4,7 @@ name: Cal.com
 tagline: Open-source scheduling infrastructure
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/kasa-calcom/icon.png
 category: productivity
-version: "6.1.0"
+version: "latest"
 port: 3002
 description: >-
   Cal.com is the open-source scheduling infrastructure that gives you full control
@@ -44,8 +44,8 @@ support: https://github.com/calcom/cal.com/discussions
 gallery:
   - https://raw.githubusercontent.com/calcom/cal.com/main/apps/web/public/screenshots/booking-page.png
 releaseNotes: >-
-  v1.0.0 - Initial stable release for Kasa community store.
-  Based on Cal.com v6.1.0.
+  v1.0.1 - Fixed app-store seeding issue by updating to latest Cal.com image.
+  Uses rolling release for latest bug fixes.
 dependencies: []
 path: ""
 defaultUsername: ""

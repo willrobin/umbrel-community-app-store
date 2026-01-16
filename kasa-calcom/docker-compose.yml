@@ -7,7 +7,8 @@ services:
       APP_PORT: 3000
 
   server:
-    image: calcom/cal.com:v6.1.0
+    # Note: Using 'latest' to include fix for app-store seeding issue (PR #26400)
+    image: calcom/cal.com:latest
     init: true
     restart: on-failure
     stop_grace_period: 1m
