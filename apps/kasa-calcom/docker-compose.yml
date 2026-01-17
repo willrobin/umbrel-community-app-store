@@ -9,6 +9,7 @@ services:
 
   server:
     image: calcom/cal.com:v6.1.0
+    container_name: kasa-calcom_server_1
     init: true
     restart: unless-stopped
     depends_on:
@@ -17,11 +18,11 @@ services:
       redis:
         condition: service_healthy
     environment:
-      # Database configuration
-      DATABASE_URL: "postgresql://calcom:calcom@db:5432/calcom"
-      DATABASE_DIRECT_URL: "postgresql://calcom:calcom@db:5432/calcom"
+      # Database configuration - use explicit container name for reliable DNS resolution
+      DATABASE_URL: "postgresql://calcom:calcom@kasa-calcom_db_1:5432/calcom"
+      DATABASE_DIRECT_URL: "postgresql://calcom:calcom@kasa-calcom_db_1:5432/calcom"
       # Redis for caching and session management
-      REDIS_URL: "redis://redis:6379"
+      REDIS_URL: "redis://kasa-calcom_redis_1:6379"
       # Authentication - critical for proper URL handling
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_SECRET: "${APP_SEED}"
@@ -57,6 +58,7 @@ services:
 
   db:
     image: postgres:15-alpine
+    container_name: kasa-calcom_db_1
     restart: unless-stopped
     environment:
       POSTGRES_DB: "calcom"
@@ -67,7 +69,9 @@ services:
     volumes:
       - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "PGPASSWORD=calcom psql -U calcom -d calcom -c 'SELECT 1' || exit 1"]
+      # Use TCP connection (-h localhost) to verify password authentication works
+      # This ensures the app can connect via TCP before the service is marked healthy
+      test: ["CMD-SHELL", "PGPASSWORD=calcom psql -h localhost -U calcom -d calcom -c 'SELECT 1' || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -81,6 +85,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: kasa-calcom_redis_1
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
     volumes:
