@@ -30,6 +30,12 @@ services:
       AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
       - ${APP_DATA_DIR}/azuracast:/var/azuracast
+      # Use tmpfs for temporary directories that must exist at startup
+      # This fixes supervisord failing because www_tmp doesn't exist on first run
+      - type: tmpfs
+        target: /var/azuracast/www_tmp
+        tmpfs:
+          size: 100M
 
   stations:
     image: ghcr.io/azuracast/azuracast:stable
@@ -59,6 +65,11 @@ services:
       AUTO_ASSIGN_PORT_MAX: "20050"
     volumes:
       - ${APP_DATA_DIR}/azuracast:/var/azuracast
+      # Use tmpfs for temporary directories that must exist at startup
+      - type: tmpfs
+        target: /var/azuracast/www_tmp
+        tmpfs:
+          size: 100M
     command: stations
 
   db:
