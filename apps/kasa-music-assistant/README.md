@@ -78,6 +78,41 @@ If automatic discovery doesn't work:
 
 ---
 
+## Connecting Streaming Services (Spotify, YouTube Music, etc.)
+
+Many streaming services like Spotify require OAuth authentication with a callback URL. By default, Music Assistant may detect an internal Docker IP address that isn't reachable from your browser.
+
+### Configure the Base URL
+
+**Before connecting streaming services**, configure the correct base URL:
+
+1. Open Music Assistant at `http://umbrel.local:18095` (or use your Umbrel's IP address)
+2. Go to **Settings** > **Core** > **Webserver**
+3. Set **Base URL** to: `http://umbrel.local:18095` (or `http://<your-umbrel-ip>:18095`)
+4. Click **Save**
+
+> **Note:** There's a known bug in version 2.7.x where the Base URL may not persist after restart. If you experience this issue, check the [Music Assistant GitHub](https://github.com/music-assistant/support/issues) for updates.
+
+### Alternative: Use the Host IP
+
+If `umbrel.local` doesn't work, find your Umbrel's IP address:
+- Check your router's connected devices list
+- Or run `hostname -I` on your Umbrel via SSH
+
+Then use `http://<IP-ADDRESS>:18095` as the Base URL.
+
+### Connecting Spotify
+
+1. Configure the Base URL (see above)
+2. Go to **Settings** > **Music Providers** > **Add Provider**
+3. Select **Spotify**
+4. Click **Authenticate** - you'll be redirected to Spotify's login
+5. After logging in, Spotify will redirect back to Music Assistant
+
+If the callback fails, verify your Base URL is correctly set and accessible from your browser.
+
+---
+
 ## Supported Music Providers
 
 - Spotify
@@ -127,6 +162,15 @@ If automatic discovery doesn't work:
 1. Ensure port 8097 is accessible from your players
 2. Check the player is compatible and properly configured
 3. Review logs in Music Assistant: **Settings** > **Core** > **Logging**
+
+### OAuth/Callback Errors (Spotify, YouTube Music, etc.)
+
+If you see callback errors like "address could not be resolved" or the callback redirects to an internal IP (e.g., `10.21.0.x`):
+
+1. **Configure Base URL**: Go to **Settings** > **Core** > **Webserver** and set Base URL to `http://umbrel.local:18095`
+2. **Use IP instead**: If `umbrel.local` doesn't work, use your Umbrel's actual IP address
+3. **Check browser access**: Verify you can open `http://umbrel.local:18095` in your browser
+4. **Known bug**: Version 2.7.x has a bug where Base URL may not save. Check for updates at the [Music Assistant GitHub](https://github.com/music-assistant/support/issues/4547)
 
 ---
 
