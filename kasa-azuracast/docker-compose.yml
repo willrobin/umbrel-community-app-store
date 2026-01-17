@@ -78,10 +78,21 @@ services:
     container_name: kasa-azuracast_redis_1
     restart: unless-stopped
     # Configure Redis for containerized environments where vm.overcommit_memory cannot be set:
-    # - Disable RDB snapshots (--save "")
-    # - Disable AOF persistence (--appendonly no)
+    # - Disable RDB snapshots (--save "") to avoid background save operations
+    # - Disable AOF persistence (--appendonly no) for cache-only usage
     # - Continue accepting writes even if background save fails (--stop-writes-on-bgsave-error no)
-    # The memory overcommit warning will still appear but Redis will function correctly
-    command: redis-server --save "" --appendonly no --stop-writes-on-bgsave-error no
+    # - Set memory limit to 128MB with LRU eviction (appropriate for AzuraCast caching)
+    # - Set tcp-backlog to 128 for containerized environments
+    # Note: The memory overcommit warning will still appear at startup but doesn't affect
+    # functionality since persistence is disabled and memory limits are enforced.
+    command: >-
+      redis-server
+      --save ""
+      --appendonly no
+      --stop-writes-on-bgsave-error no
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --tcp-backlog 128
+      --activedefrag yes
     volumes:
       - ${APP_DATA_DIR}/azuracast/redis:/data
