@@ -67,11 +67,11 @@ services:
     volumes:
       - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
+      test: ["CMD-SHELL", "PGPASSWORD=calcom psql -U calcom -d calcom -c 'SELECT 1' || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 10s
+      start_period: 15s
     deploy:
       resources:
         limits:
