@@ -77,7 +77,11 @@ services:
     image: redis:7-alpine
     container_name: kasa-azuracast_redis_1
     restart: unless-stopped
-    # Disable RDB snapshots to avoid memory overcommit warnings in containerized environments
-    command: redis-server --save ""
+    # Configure Redis for containerized environments where vm.overcommit_memory cannot be set:
+    # - Disable RDB snapshots (--save "")
+    # - Disable AOF persistence (--appendonly no)
+    # - Continue accepting writes even if background save fails (--stop-writes-on-bgsave-error no)
+    # The memory overcommit warning will still appear but Redis will function correctly
+    command: redis-server --save "" --appendonly no --stop-writes-on-bgsave-error no
     volumes:
       - ${APP_DATA_DIR}/azuracast/redis:/data
