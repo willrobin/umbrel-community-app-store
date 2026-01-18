@@ -59,3 +59,14 @@ let others schedule time with you without the back-and-forth emails.
 - Connect your external calendars to check availability automatically
 - For public access, consider setting up a reverse proxy with SSL
 - All secrets are derived from your Umbrel's secure app seed
+- The first startup may take 2-3 minutes while database migrations run
+- If the app doesn't start, wait a few minutes and try again - the database needs time to initialize
+
+## Troubleshooting
+
+If Cal.com fails to start:
+
+1. **Wait for initialization**: The first startup requires database migrations which can take several minutes
+2. **Check service health**: All three services (database, Redis, Cal.com) must be healthy
+3. **Restart the app**: Sometimes a simple restart resolves initial startup issues
+4. **Check logs**: View container logs for specific error messages
