@@ -61,9 +61,11 @@ else
       manifest_port_apps+=("$app_id")
     fi
 
-    app_proxy_port=$(rg -m1 '^[[:space:]]*APP_PORT:' "$entry/docker-compose.yml" 2>/dev/null | sed -E 's/.*APP_PORT:[[:space:]]*"?([0-9]+)"?.*/\1/')
-    if [[ -z "$app_proxy_port" ]]; then
-      fail "Missing APP_PORT in $entry/docker-compose.yml"
+    # Check for APP_PORT (not required if using network_mode: host)
+    app_proxy_port=$(rg -m1 '^[[:space:]]*APP_PORT:' "$entry/docker-compose.yml" 2>/dev/null | sed -E 's/.*APP_PORT:[[:space:]]*"?([0-9]+)"?.*/\1/' || true)
+    uses_host_network=$(rg -m1 'network_mode:[[:space:]]*host' "$entry/docker-compose.yml" 2>/dev/null || true)
+    if [[ -z "$app_proxy_port" && -z "$uses_host_network" ]]; then
+      fail "Missing APP_PORT in $entry/docker-compose.yml (unless using network_mode: host)"
     fi
   done
 fi
