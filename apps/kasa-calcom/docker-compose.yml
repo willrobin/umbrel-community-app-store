@@ -3,41 +3,55 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: kasa-calcom_server_1
+      APP_HOST: kasa-calcom_calcom_1
       APP_PORT: 3000
 
-  server:
-    image: ghcr.io/calcom/cal.com:v4.7.8
+  calcom:
+    image: calcom/cal.com:v5.1.1
     init: true
     restart: unless-stopped
+    stop_grace_period: 30s
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     environment:
-      # Database
+      # Database - use service name for container networking
       DATABASE_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
       DATABASE_DIRECT_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
-      # Redis
+      # Redis - required for Cal.com
       REDIS_URL: "redis://kasa-calcom_redis_1:6379"
-      # URLs - Critical for Cal.com to work properly
+      # URLs - Critical for Cal.com to work properly behind Umbrel proxy
       NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
-      # Secrets
+      # Secrets - derived from Umbrel app seed
       NEXTAUTH_SECRET: "${APP_SEED}"
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
       # Production settings
       NODE_ENV: "production"
       # Allow signup on first launch
       NEXT_PUBLIC_DISABLE_SIGNUP: "false"
-      # Telemetry
+      # Telemetry disabled for privacy
       CALCOM_TELEMETRY_DISABLED: "1"
+      # License key (empty for self-hosted)
+      CALCOM_LICENSE_KEY: ""
+      # Skip email verification for easier setup
+      NEXT_PUBLIC_IS_E2E: "false"
+      # API configuration
+      NEXT_PUBLIC_API_V2_URL: "http://${DEVICE_DOMAIN_NAME}:3002/api/v2"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
 
   db:
     image: postgres:15-alpine@sha256:6212aa53dcbd290ccd57f5c02e58c55900e831ba45d4b5c2d2d7f11ee9de4c75
     user: "1000:1000"
     restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
@@ -48,12 +62,20 @@ services:
       test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
       start_period: 30s
 
   redis:
     image: redis:7-alpine@sha256:de13e74e14b98eb96bdf886791571a2a48f77081619b4b4f5f2117c42e446199
     user: "1000:1000"
     restart: unless-stopped
+    stop_grace_period: 10s
+    command: redis-server --appendonly yes
     volumes:
       - ${APP_DATA_DIR}/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
