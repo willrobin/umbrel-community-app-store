@@ -34,7 +34,7 @@ Kasa (傘) means "umbrella" in Japanese, a nod to Umbrel's umbrella logo. This i
 | 3003 | Paperless-GPT |
 | 3004 | AzuraCast Web UI |
 | 8096 | Music Assistant |
-| 20000-20050 | AzuraCast streaming |
+| 8000-8010 | AzuraCast streaming |
 
 No port conflicts with other known community app stores (verified as of January 2026).
 

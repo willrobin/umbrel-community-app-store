@@ -3,67 +3,59 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
       APP_HOST: kasa-azuracast_web_1
       APP_PORT: 80
 
   web:
-    image: ghcr.io/azuracast/azuracast:stable
+    image: ghcr.io/azuracast/azuracast:0.20.3
+    container_name: kasa-azuracast_web_1
     init: true
     restart: unless-stopped
-    depends_on:
-      - db
-      - redis
-      - stations
     environment:
-      MYSQL_HOST: db
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: azuracast
-      MYSQL_USER: azuracast
-      MYSQL_PASSWORD: "${APP_SEED}"
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      AUTO_ASSIGN_PORT_MIN: "20000"
-      AUTO_ASSIGN_PORT_MAX: "20050"
-    volumes:
-      - ${APP_DATA_DIR}/azuracast:/var/azuracast
-
-  stations:
-    image: ghcr.io/azuracast/azuracast:stable
-    init: true
-    restart: unless-stopped
-    depends_on:
-      - db
-      - redis
-    ports:
-      - "20000-20050:20000-20050"
-    environment:
-      MYSQL_HOST: db
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: azuracast
-      MYSQL_USER: azuracast
-      MYSQL_PASSWORD: "${APP_SEED}"
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      AUTO_ASSIGN_PORT_MIN: "20000"
-      AUTO_ASSIGN_PORT_MAX: "20050"
-    volumes:
-      - ${APP_DATA_DIR}/azuracast:/var/azuracast
-    command: stations
-
-  db:
-    image: mariadb:10.11
-    restart: unless-stopped
-    environment:
+      # AzuraCast uses internal MariaDB and Redis by default
+      # These environment variables configure the internal services
       MYSQL_ROOT_PASSWORD: "${APP_SEED}"
-      MYSQL_DATABASE: azuracast
-      MYSQL_USER: azuracast
-      MYSQL_PASSWORD: "${APP_SEED}"
+      APPLICATION_ENV: production
+      LANG: en_US.UTF-8
+      # Disable auto-update (Umbrel handles updates)
+      ENABLE_WEB_UPDATER: "false"
+      # Port range for streaming stations
+      AUTO_ASSIGN_PORT_MIN: "8000"
+      AUTO_ASSIGN_PORT_MAX: "8010"
+    ports:
+      # Streaming ports for radio stations
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+      - "8004:8004"
+      - "8005:8005"
+      - "8006:8006"
+      - "8007:8007"
+      - "8008:8008"
+      - "8009:8009"
+      - "8010:8010"
     volumes:
-      - ${APP_DATA_DIR}/azuracast/db:/var/lib/mysql
+      # Main AzuraCast data directories - uses named volumes for proper initialization
+      - station_data:/var/azuracast/stations
+      - backups:/var/azuracast/backups
+      - db_data:/var/lib/mysql
+      - www_uploads:/var/azuracast/uploads
+      - shoutcast2_install:/var/azuracast/servers/shoutcast2
+      - stereo_tool_install:/var/azuracast/servers/stereo_tool
+      - geolite_install:/var/azuracast/geoip
+      - sftpgo_data:/var/azuracast/sftpgo/persist
+      - acme_data:/var/azuracast/acme
+      - tmp_data:/var/azuracast/www_tmp
 
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    volumes:
-      - ${APP_DATA_DIR}/azuracast/redis:/data
+volumes:
+  station_data:
+  backups:
+  db_data:
+  www_uploads:
+  shoutcast2_install:
+  stereo_tool_install:
+  geolite_install:
+  sftpgo_data:
+  acme_data:
+  tmp_data:
