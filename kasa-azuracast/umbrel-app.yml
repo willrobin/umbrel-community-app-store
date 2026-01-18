@@ -1,0 +1,34 @@
+manifestVersion: 1
+id: kasa-azuracast
+name: AzuraCast
+tagline: Self-hosted radio streaming management suite
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-azuracast/icon.png
+category: Media
+version: "1.0.0"
+port: 3004
+description: >-
+  AzuraCast is a self-hosted, all-in-one web radio management suite that lets
+  you run a fully working web radio station in just minutes. Manage multiple
+  stations, upload and organize media libraries, schedule playlists, and stream
+  live to listeners worldwide from a single intuitive dashboard.
+
+
+  Features include live DJ streaming, automatic playlist scheduling, listener
+  statistics, podcast hosting, and support for Icecast and Shoutcast protocols.
+  Built on Docker for easy deployment and maintenance.
+
+developer: AzuraCast
+website: https://www.azuracast.com
+submitter: Kasa
+submission: https://github.com/willrobin/umbrel-community-app-store
+repo: https://github.com/AzuraCast/AzuraCast
+support: https://github.com/AzuraCast/AzuraCast/issues
+gallery:
+  - https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/screenshot.png
+releaseNotes: >-
+  Kasa community store release with optimized configuration for umbrelOS.
+  Includes web interface on port 3004 and streaming ports 20000-20050.
+dependencies: []
+path: ""
+defaultUsername: ""
+defaultPassword: ""

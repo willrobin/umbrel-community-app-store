@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  server:
+    image: ghcr.io/music-assistant/server:2.7.5
+    restart: unless-stopped
+    network_mode: host
+    # UI at port 8097 - no app_proxy needed with host network mode
+    cap_add:
+      - SYS_ADMIN
+      - DAC_READ_SEARCH
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      LOG_LEVEL: info
+      SERVER_PORT: 8097
+    volumes:
+      - ${APP_DATA_DIR}/data:/data
+      - ${APP_DATA_DIR}/media:/media
