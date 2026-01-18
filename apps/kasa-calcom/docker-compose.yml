@@ -3,38 +3,57 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
       APP_HOST: kasa-calcom_server_1
       APP_PORT: 3000
 
   server:
-    image: ghcr.io/calcom/cal.com:latest
+    image: ghcr.io/calcom/cal.com:v4.7.8
     init: true
     restart: unless-stopped
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
     environment:
-      DATABASE_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
-      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_SEED}@db:5432/calcom"
-      REDIS_URL: "redis://redis:6379"
+      # Database
+      DATABASE_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
+      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
+      # Redis
+      REDIS_URL: "redis://kasa-calcom_redis_1:6379"
+      # URLs - Critical for Cal.com to work properly
+      NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
+      # Secrets
       NEXTAUTH_SECRET: "${APP_SEED}"
       CALENDSO_ENCRYPTION_KEY: "${APP_SEED}"
+      # Production settings
       NODE_ENV: "production"
+      # Allow signup on first launch
+      NEXT_PUBLIC_DISABLE_SIGNUP: "false"
+      # Telemetry
+      CALCOM_TELEMETRY_DISABLED: "1"
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine@sha256:6212aa53dcbd290ccd57f5c02e58c55900e831ba45d4b5c2d2d7f11ee9de4c75
+    user: "1000:1000"
     restart: unless-stopped
     environment:
       POSTGRES_DB: "calcom"
       POSTGRES_USER: "calcom"
-      POSTGRES_PASSWORD: "${APP_SEED}"
+      POSTGRES_PASSWORD: "${APP_PASSWORD}"
     volumes:
       - ${APP_DATA_DIR}/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   redis:
-    image: redis:7-alpine
+    image: redis:7-alpine@sha256:de13e74e14b98eb96bdf886791571a2a48f77081619b4b4f5f2117c42e446199
+    user: "1000:1000"
     restart: unless-stopped
     volumes:
       - ${APP_DATA_DIR}/redis:/data

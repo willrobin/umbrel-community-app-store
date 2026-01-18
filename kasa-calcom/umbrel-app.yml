@@ -4,7 +4,7 @@ name: Cal.com
 tagline: Open-source scheduling for individuals and teams
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-calcom/icon.png
 category: Productivity
-version: "1.0.0"
+version: "1.1.0"
 port: 3002
 description: >-
   Cal.com is the open-source Calendly alternative for scheduling meetings and
@@ -26,8 +26,9 @@ support: https://github.com/calcom/cal.com/issues
 gallery:
   - https://user-images.githubusercontent.com/8019099/210054112-5955e812-a76e-4160-9ddd-58f2c72f1cce.png
 releaseNotes: >-
-  Kasa community store release with optimized configuration for umbrelOS.
-  Includes PostgreSQL database and Redis for session management.
+  Fixed installation issues on umbrelOS. Added missing NEXT_PUBLIC_WEBAPP_URL
+  environment variable, pinned to stable image version v4.7.8, added proper
+  service health checks, and improved database connectivity.
 dependencies: []
 path: ""
 defaultUsername: ""
