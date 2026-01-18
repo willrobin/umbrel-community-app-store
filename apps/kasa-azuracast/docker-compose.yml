@@ -47,8 +47,8 @@ services:
       - sftpgo_data:/var/azuracast/sftpgo/persist
       - acme_data:/var/azuracast/acme
       - tmp_data:/var/azuracast/www_tmp
-      # External media access (Umbrel Home) - read-only for safety
-      - ${UMBREL_ROOT}/home/Medien:/var/azuracast/media:ro
+      # External media access (Umbrel Home) - read-write for metadata storage
+      - ${UMBREL_ROOT}/home/Medien:/var/azuracast/media
 
 volumes:
   station_data:
