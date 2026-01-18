@@ -5,8 +5,8 @@ services:
     image: ghcr.io/music-assistant/server:2.7.5
     restart: unless-stopped
     network_mode: host
-    # Webserver (UI) on port 8096, stream server on port 8097
-    # Port 8095 is often in use by other services, so we use 8096
+    # Webserver (UI) on port 3005, stream server on port 3006
+    # Using Kasa store port range (3001+) to avoid conflicts
     cap_add:
       - SYS_ADMIN
       - DAC_READ_SEARCH
@@ -18,7 +18,7 @@ services:
     command:
       - -c
       - |
-        # Pre-configure webserver port to 8096 to avoid port conflicts
+        # Pre-configure webserver port to 3005 (Kasa store port range)
         # Music Assistant stores settings in .storage subdirectory
         STORAGE_DIR="/data/.storage"
         SETTINGS_FILE="$$STORAGE_DIR/settings.json"
@@ -27,6 +27,7 @@ services:
         mkdir -p "$$STORAGE_DIR"
 
         # Configure settings with correct ports
+        # Music Assistant stores core module configs under 'core/{module}/values/{key}'
         python3 -c "
         import json
         import os
@@ -44,27 +45,31 @@ services:
                 print(f'Could not load settings: {e}')
                 settings = {}
 
-        # Ensure webserver config exists with port 8096
-        if 'webserver' not in settings:
-            settings['webserver'] = {'values': {}, 'domain': 'webserver', 'last_error': None}
-        if 'values' not in settings['webserver']:
-            settings['webserver']['values'] = {}
+        # Ensure core config structure exists
+        if 'core' not in settings:
+            settings['core'] = {}
 
-        # Always set port to 8096 to avoid conflicts with default 8095
-        current_port = settings['webserver']['values'].get('port', 8095)
-        if current_port == 8095:
-            settings['webserver']['values']['port'] = 8096
-            print('Set webserver port to 8096')
+        # Ensure webserver config exists under core with port 3005
+        if 'webserver' not in settings['core']:
+            settings['core']['webserver'] = {'values': {}, 'domain': 'webserver'}
+        if 'values' not in settings['core']['webserver']:
+            settings['core']['webserver']['values'] = {}
+
+        # Always set port to 3005 (Kasa store port range)
+        current_port = settings['core']['webserver']['values'].get('port', 8095)
+        if current_port in (8095, 8096):
+            settings['core']['webserver']['values']['port'] = 3005
+            print('Set webserver port to 3005')
         else:
             print(f'Webserver port already configured: {current_port}')
 
-        # Ensure streams config exists with port 8097
-        if 'streams' not in settings:
-            settings['streams'] = {'values': {}, 'domain': 'streams', 'last_error': None}
-        if 'values' not in settings['streams']:
-            settings['streams']['values'] = {}
-        if settings['streams']['values'].get('port', 8097) == 8097:
-            settings['streams']['values']['port'] = 8097
+        # Ensure streams config exists under core with port 3006
+        if 'streams' not in settings['core']:
+            settings['core']['streams'] = {'values': {}, 'domain': 'streams'}
+        if 'values' not in settings['core']['streams']:
+            settings['core']['streams']['values'] = {}
+        if settings['core']['streams']['values'].get('port', 8097) in (8097, 3006):
+            settings['core']['streams']['values']['port'] = 3006
 
         # Write settings
         with open(settings_file, 'w') as f:
