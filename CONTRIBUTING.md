@@ -10,10 +10,15 @@ apps/<app-id>/
   umbrel-app.yml
   docker-compose.yml
   README.md
+  icon.png (optional, stays here)
 ```
 
 For Umbrel to discover apps, publish the app to the repo root:
 `./scripts/publish.sh`
+
+**IMPORTANT:** Root-level app directories (e.g., `kasa-azuracast/`) are auto-generated
+by `publish.sh`. Do NOT manually edit or delete them. They are required for Umbrel
+to discover apps. Always edit files in `apps/<app-id>/` and then run `publish.sh`.
 
 ## Persistence, Ports, Env, Secrets
 - Persist only what is necessary using named volumes or host paths under Umbrel's data directory.
