@@ -2,6 +2,42 @@
 
 These rules apply to Codex/Claude Code contributors working in this repo.
 
+## CRITICAL: Repository Structure
+
+**DO NOT DELETE root-level app directories (e.g., `kasa-azuracast/`)!**
+
+This repository uses a two-directory pattern required by Umbrel:
+
+```
+repo-root/
+├── apps/                    # SOURCE: Development happens here
+│   └── kasa-app/
+│       ├── umbrel-app.yml
+│       ├── docker-compose.yml
+│       ├── README.md
+│       └── icon.png         # Icons stay in apps/ only
+│
+├── kasa-app/                # PUBLISHED: Umbrel reads from here
+│   ├── umbrel-app.yml       # ← Copied by publish.sh
+│   ├── docker-compose.yml   # ← Copied by publish.sh
+│   └── README.md            # ← Copied by publish.sh
+│
+├── scripts/
+│   └── publish.sh           # Copies apps/* → root/*
+└── umbrel-app-store.yml
+```
+
+**Why this structure?**
+- Umbrel discovers apps from the **repository root**, not from subdirectories
+- We keep source files in `apps/` for organization and to include extras (icon.png)
+- `publish.sh` copies only the 3 required files to root level
+
+**Golden Rules:**
+1. Edit files in `apps/<app-id>/` ONLY
+2. Run `./scripts/publish.sh` after EVERY change
+3. NEVER manually edit or delete root-level app directories
+4. Root directories are auto-generated - treat them as build artifacts
+
 ## Conventions
 - Apps live in `apps/<app-id>/`.
 - Required per app: `umbrel-app.yml`, `docker-compose.yml`, `README.md`.
