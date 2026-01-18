@@ -49,7 +49,6 @@ services:
 
   db:
     image: postgres:15-alpine
-    user: "1000:1000"
     restart: unless-stopped
     stop_grace_period: 30s
     environment:
@@ -62,12 +61,11 @@ services:
       test: ["CMD-SHELL", "pg_isready -U calcom -d calcom"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 60s
 
   redis:
     image: redis:7-alpine
-    user: "1000:1000"
     restart: unless-stopped
     stop_grace_period: 10s
     command: redis-server --appendonly yes
@@ -77,5 +75,5 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 10s
+      retries: 10
+      start_period: 30s
