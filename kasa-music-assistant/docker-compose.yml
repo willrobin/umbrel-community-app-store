@@ -1,15 +1,11 @@
 version: "3.7"
 
 services:
-  app_proxy:
-    environment:
-      APP_HOST: kasa-music-assistant_server_1
-      APP_PORT: 8095
-
   server:
     image: ghcr.io/music-assistant/server:2.7.5
     restart: unless-stopped
     network_mode: host
+    # UI at default port 8095 - no app_proxy needed with host network mode
     cap_add:
       - SYS_ADMIN
       - DAC_READ_SEARCH
