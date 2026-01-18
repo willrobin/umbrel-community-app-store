@@ -38,9 +38,12 @@ let others schedule time with you without the back-and-forth emails.
 
 | Variable | Description |
 |----------|-------------|
-| `NEXTAUTH_URL` | Public URL (uses `${DEVICE_DOMAIN_NAME}:3002`) |
+| `NEXT_PUBLIC_WEBAPP_URL` | Public URL for the app (uses `${DEVICE_DOMAIN_NAME}:3002`) |
+| `NEXTAUTH_URL` | Authentication URL (uses `${DEVICE_DOMAIN_NAME}:3002`) |
 | `NEXTAUTH_SECRET` | Authentication secret (uses `${APP_SEED}`) |
 | `CALENDSO_ENCRYPTION_KEY` | Encryption key (uses `${APP_SEED}`) |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `REDIS_URL` | Redis connection string |
 
 ## Getting Started
 
