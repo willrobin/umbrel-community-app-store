@@ -26,26 +26,38 @@ worldwide from a single intuitive dashboard.
 |---------|-------|
 | Web UI | `http://umbrel.local:3004` |
 | Default Port | 3004 |
-| Streaming Ports | 20000-20050 |
+| Streaming Ports | 8000-8010 |
 
 ### Data Volumes
 
-| Host Path | Container Path | Purpose |
-|-----------|----------------|---------|
-| `${APP_DATA_DIR}/azuracast` | `/var/azuracast` | Main application data |
-| `${APP_DATA_DIR}/azuracast/db` | `/var/lib/mysql` | MariaDB database |
-| `${APP_DATA_DIR}/azuracast/redis` | `/data` | Redis cache |
+This app uses Docker named volumes to ensure proper initialization of AzuraCast's
+internal directory structure. Data is stored in the following volumes:
+
+| Volume | Purpose |
+|--------|---------|
+| `station_data` | Radio station configurations |
+| `backups` | Automatic backups |
+| `db_data` | MariaDB database |
+| `www_uploads` | User uploads |
+| `tmp_data` | Temporary files |
 
 ## Getting Started
 
 1. Install the app from the Kasa community store
 2. Access the web interface at `http://umbrel.local:3004`
-3. Complete the initial setup wizard
+3. Complete the initial setup wizard to create your admin account
 4. Create your first radio station
+
+## Streaming Ports
+
+Listeners can connect directly to your radio streams using ports 8000-8010.
+Each station you create will be assigned a port from this range. Example stream URLs:
+
+- `http://your-umbrel-ip:8000/radio.mp3`
+- `http://your-umbrel-ip:8001/listen`
 
 ## Notes
 
-- AzuraCast manages station streaming internally using Icecast
-- External streaming ports 20000-20050 are exposed for direct player connections
-- The database uses secure credentials generated from your Umbrel's app seed
+- AzuraCast is an all-in-one image that includes MariaDB, Redis, and Icecast
+- The web interface is proxied through Umbrel's app proxy on port 3004
 - For advanced configuration, refer to the upstream documentation
