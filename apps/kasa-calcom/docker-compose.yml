@@ -3,7 +3,7 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: kasa-calcom_calcom_1
+      APP_HOST: calcom
       APP_PORT: 3000
 
   calcom:
@@ -18,10 +18,10 @@ services:
         condition: service_healthy
     environment:
       # Database - use service name for container networking
-      DATABASE_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
-      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_PASSWORD}@kasa-calcom_db_1:5432/calcom"
+      DATABASE_URL: "postgresql://calcom:${APP_PASSWORD}@db:5432/calcom"
+      DATABASE_DIRECT_URL: "postgresql://calcom:${APP_PASSWORD}@db:5432/calcom"
       # Redis - required for Cal.com
-      REDIS_URL: "redis://kasa-calcom_redis_1:6379"
+      REDIS_URL: "redis://redis:6379"
       # URLs - Critical for Cal.com to work properly behind Umbrel proxy
       NEXT_PUBLIC_WEBAPP_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
       NEXTAUTH_URL: "http://${DEVICE_DOMAIN_NAME}:3002"
@@ -69,6 +69,9 @@ services:
     restart: unless-stopped
     stop_grace_period: 10s
     command: redis-server --appendonly yes
+    sysctls:
+      - net.core.somaxconn=511
+      - vm.overcommit_memory=1
     volumes:
       - ${APP_DATA_DIR}/redis:/data
     healthcheck:
