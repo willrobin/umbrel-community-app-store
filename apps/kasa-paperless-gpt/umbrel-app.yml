@@ -1,14 +1,24 @@
 manifestVersion: 1
 id: kasa-paperless-gpt
 name: Paperless-GPT
-tagline: AI OCR and tagging for paperless-ngx
-icon: https://raw.githubusercontent.com/robinwill/umbrel-community-app-store/main/apps/kasa-paperless-gpt/icon.png
+tagline: AI OCR and tagging for Paperless-ngx
+icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-paperless-gpt/icon.png
 category: Productivity
-version: "0.1.0"
+version: "0.23.0"
 port: 3003
 description: >-
-  AI-powered companion for paperless-ngx that enhances OCR with LLMs and
-  automatically suggests titles, tags, correspondents, and custom fields.
+  AI-powered companion for Paperless-ngx that enhances OCR with LLMs and
+  automatically suggests titles, tags, correspondents, document types, and
+  custom fields. Supports vision LLMs for superior OCR accuracy on difficult
+  scans.
+
+
+  Works with OpenAI, Ollama, Google Gemini, and other LLM providers. Features
+  include automatic document processing, customizable prompts, and a web
+  interface for reviewing suggestions before applying them.
+
+
+  Requires a running Paperless-ngx instance and an LLM provider.
 
 developer: Icereed
 website: https://github.com/icereed/paperless-gpt
@@ -19,7 +29,9 @@ support: https://github.com/icereed/paperless-gpt/issues
 gallery:
   - https://raw.githubusercontent.com/icereed/paperless-gpt/main/paperless-gpt-screenshot.png
 releaseNotes: >-
-  Initial release on the Kasa community store.
+  Kasa community store release with Paperless-GPT v0.23.0. Includes Google
+  Gemini AI support, automatic document type suggestions, and vision LLM
+  integration for enhanced OCR.
 dependencies: []
 path: ""
 defaultUsername: ""
