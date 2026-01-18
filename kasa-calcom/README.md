@@ -4,6 +4,18 @@ Cal.com is the open-source Calendly alternative for scheduling meetings and
 appointments. Create beautiful booking pages, manage your availability, and
 let others schedule time with you without the back-and-forth emails.
 
+## Architecture Requirements
+
+**This app currently supports AMD64 (x86_64) only.**
+
+| Architecture | Support | Devices |
+|--------------|---------|---------|
+| AMD64 | Supported | Intel/AMD PCs, most servers |
+| ARM64 | Not supported | Raspberry Pi, Apple Silicon |
+
+Cal.com does not publish multi-architecture Docker images. ARM64 users need to
+modify `docker-compose.yml` to use the `-arm` image variant (see Troubleshooting).
+
 ## Features
 
 - **Booking Pages** - Create customizable scheduling pages for different event types
@@ -64,9 +76,45 @@ let others schedule time with you without the back-and-forth emails.
 
 ## Troubleshooting
 
-If Cal.com fails to start:
+### App fails to start
 
 1. **Wait for initialization**: The first startup requires database migrations which can take several minutes
 2. **Check service health**: All three services (database, Redis, Cal.com) must be healthy
 3. **Restart the app**: Sometimes a simple restart resolves initial startup issues
 4. **Check logs**: View container logs for specific error messages
+
+### ARM64 / Raspberry Pi Users
+
+If you see errors like `exec format error` or `no matching manifest for linux/arm64`:
+
+**The default image only supports AMD64.** You need to use the ARM variant:
+
+1. SSH into your Umbrel device
+2. Navigate to the app directory:
+   ```bash
+   cd ~/umbrel/app-data/kasa-calcom
+   ```
+3. Edit `docker-compose.yml` and change:
+   ```yaml
+   # From:
+   image: calcom/cal.com:v5.1.1
+
+   # To:
+   image: calcom/cal.com:v5.1.1-arm
+   ```
+4. Restart the app from Umbrel UI
+
+**Note:** This manual change will be overwritten when the app updates. Check release notes for ARM support status.
+
+### Container naming errors
+
+If you see errors about container names not found:
+- Umbrel uses the naming convention `<app-id>_<service>_1`
+- For this app: `kasa-calcom_calcom_1`, `kasa-calcom_db_1`, `kasa-calcom_redis_1`
+
+### Database connection errors
+
+If Cal.com can't connect to the database:
+1. Wait 2-3 minutes for PostgreSQL to fully initialize
+2. Check that the `db` container is healthy: `docker ps`
+3. Restart the app if the database container shows "unhealthy"
