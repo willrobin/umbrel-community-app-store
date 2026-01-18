@@ -5,7 +5,8 @@ services:
     image: ghcr.io/music-assistant/server:2.7.5
     restart: unless-stopped
     network_mode: host
-    # UI at port 8097 - no app_proxy needed with host network mode
+    # Webserver (UI) on port 8096, stream server on port 8097
+    # Port 8095 is often in use by other services, so we use 8096
     cap_add:
       - SYS_ADMIN
       - DAC_READ_SEARCH
@@ -13,7 +14,44 @@ services:
       - apparmor:unconfined
     environment:
       LOG_LEVEL: info
-      SERVER_PORT: 8097
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        # Pre-configure webserver port to 8096 to avoid port conflicts
+        SETTINGS_FILE="/data/settings.json"
+        if [ ! -f "$$SETTINGS_FILE" ]; then
+          echo '{"webserver":{"values":{"port":8096},"domain":"webserver","last_error":null},"streams":{"values":{"port":8097},"domain":"streams","last_error":null}}' > "$$SETTINGS_FILE"
+          echo "Created initial settings with webserver port 8096 and stream port 8097"
+        else
+          # Update existing settings if webserver port is still default 8095
+          if grep -q '"port":8095' "$$SETTINGS_FILE" 2>/dev/null || ! grep -q '"webserver"' "$$SETTINGS_FILE" 2>/dev/null; then
+            python3 -c "
+        import json
+        import os
+        try:
+            with open('$$SETTINGS_FILE', 'r') as f:
+                settings = json.load(f)
+        except:
+            settings = {}
+        if 'webserver' not in settings:
+            settings['webserver'] = {'values': {}, 'domain': 'webserver', 'last_error': None}
+        if 'values' not in settings['webserver']:
+            settings['webserver']['values'] = {}
+        settings['webserver']['values']['port'] = 8096
+        if 'streams' not in settings:
+            settings['streams'] = {'values': {}, 'domain': 'streams', 'last_error': None}
+        if 'values' not in settings['streams']:
+            settings['streams']['values'] = {}
+        settings['streams']['values']['port'] = 8097
+        with open('$$SETTINGS_FILE', 'w') as f:
+            json.dump(settings, f)
+        print('Updated settings with webserver port 8096 and stream port 8097')
+        "
+          fi
+        fi
+        # Start the Music Assistant server
+        exec python3 -m music_assistant --config /data
     volumes:
       - ${APP_DATA_DIR}/data:/data
       - ${APP_DATA_DIR}/media:/media

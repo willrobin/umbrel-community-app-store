@@ -8,7 +8,7 @@ Kasa (傘) means "umbrella" in Japanese, a nod to Umbrel's umbrella logo. This i
 | :-: | :-: | :-- | :-- | :-: |
 | 1 | <img height="28" src="apps/kasa-azuracast/icon.png" /> | [AzuraCast](apps/kasa-azuracast) | Self-hosted radio streaming and station management | 3004 |
 | 2 | <img height="28" src="apps/kasa-calcom/icon.png" /> | [Cal.com](apps/kasa-calcom) | Open-source scheduling for teams and individuals | 3002 |
-| 3 | <img height="28" src="apps/kasa-music-assistant/icon.png" /> | [Music Assistant](apps/kasa-music-assistant) | Unified music streaming for local and online sources | 8095 |
+| 3 | <img height="28" src="apps/kasa-music-assistant/icon.png" /> | [Music Assistant](apps/kasa-music-assistant) | Unified music streaming for local and online sources | 8096 |
 | 4 | <img height="28" src="apps/kasa-paperless-ai/icon.png" /> | [Paperless-AI](apps/kasa-paperless-ai) | AI tagging and RAG search for Paperless-ngx | 3001 |
 | 5 | <img height="28" src="apps/kasa-paperless-gpt/icon.png" /> | [Paperless-GPT](apps/kasa-paperless-gpt) | LLM-powered OCR and tagging for Paperless-ngx | 3003 |
 
@@ -33,7 +33,7 @@ Kasa (傘) means "umbrella" in Japanese, a nod to Umbrel's umbrella logo. This i
 | 3002 | Cal.com |
 | 3003 | Paperless-GPT |
 | 3004 | AzuraCast Web UI |
-| 8095 | Music Assistant |
+| 8096 | Music Assistant |
 | 20000-20050 | AzuraCast streaming |
 
 No port conflicts with other known community app stores (verified as of January 2026).

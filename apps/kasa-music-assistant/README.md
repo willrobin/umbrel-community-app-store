@@ -21,8 +21,8 @@ streaming services and local music files to a wide range of connected speakers.
 
 | Setting | Value |
 |---------|-------|
-| Web UI | `http://umbrel.local:8095` |
-| Default Port | 8095 |
+| Web UI | `http://umbrel.local:8096` |
+| Default Port | 8096 |
 | Stream Port | 8097 |
 
 ### Data Volumes
@@ -35,7 +35,7 @@ streaming services and local music files to a wide range of connected speakers.
 ## Getting Started
 
 1. Install the app from the Kasa community store
-2. Access the web interface at `http://umbrel.local:8095`
+2. Access the web interface at `http://umbrel.local:8096`
 3. Add your music providers (Spotify, Tidal, YouTube Music, etc.)
 4. Configure your audio players (Sonos, Chromecast, AirPlay, etc.)
 5. Enjoy your unified music library
