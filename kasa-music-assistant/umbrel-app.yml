@@ -5,7 +5,7 @@ tagline: Your music, your players - unified music streaming
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-music-assistant/icon.png
 category: Media
 version: "2.7.5"
-port: 8095
+port: 8097
 description: >-
   Music Assistant is a free, open-source music library manager that connects
   to your streaming services and a wide range of connected speakers. It
