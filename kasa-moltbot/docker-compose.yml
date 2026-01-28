@@ -3,7 +3,7 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: kasa-moltbot_gateway_1
+      APP_HOST: gateway
       APP_PORT: 18789
 
   gateway:
@@ -28,6 +28,7 @@ services:
       - "0.0.0.0"
       - --port
       - "18789"
+      - --allow-unconfigured
     volumes:
-      - ${APP_DATA_DIR}/config:/home/node/.clawdbot
+      - ${APP_DATA_DIR}/config:/home/node/.moltbot
       - ${APP_DATA_DIR}/workspace:/home/node/clawd
