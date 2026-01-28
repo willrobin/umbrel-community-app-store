@@ -3,12 +3,11 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
-      APP_HOST: kasa-paperless-gpt_server_1
+      APP_HOST: server
       APP_PORT: 8080
 
   server:
-    image: icereed/paperless-gpt:latest
+    image: icereed/paperless-gpt:v0.23.0
     init: true
     restart: unless-stopped
     environment:

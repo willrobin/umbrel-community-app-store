@@ -3,12 +3,11 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: kasa-azuracast_web_1
+      APP_HOST: web
       APP_PORT: 80
 
   web:
     image: ghcr.io/azuracast/azuracast:0.20.3
-    container_name: kasa-azuracast_web_1
     init: true
     restart: unless-stopped
     environment:
@@ -47,8 +46,8 @@ services:
       - sftpgo_data:/var/azuracast/sftpgo/persist
       - acme_data:/var/azuracast/acme
       - tmp_data:/var/azuracast/www_tmp
-      # External media access (Umbrel Home) - read-write for metadata storage
-      - ${UMBREL_ROOT}/home/Medien:/var/azuracast/media
+      # External media access - read-write for metadata storage
+      - ${APP_DATA_DIR}/media:/var/azuracast/media
 
 volumes:
   station_data:

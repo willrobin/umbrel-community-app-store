@@ -3,12 +3,11 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
-      APP_HOST: kasa-paperless-ai_server_1
+      APP_HOST: server
       APP_PORT: 3000
 
   server:
-    image: clusterzx/paperless-ai:latest
+    image: clusterzx/paperless-ai:v2.6.4
     user: "1000:1000"
     init: true
     restart: unless-stopped
@@ -24,5 +23,3 @@ services:
       RAG_SERVICE_ENABLED: "false"
     volumes:
       - ${APP_DATA_DIR}:/app/data
-
-volumes: {}
