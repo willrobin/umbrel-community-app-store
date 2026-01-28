@@ -6,15 +6,12 @@ let others schedule time with you without the back-and-forth emails.
 
 ## Architecture Requirements
 
-**This app currently supports AMD64 (x86_64) only.**
-
 | Architecture | Support | Devices |
 |--------------|---------|---------|
 | AMD64 | Supported | Intel/AMD PCs, most servers |
-| ARM64 | Not supported | Raspberry Pi, Apple Silicon |
+| ARM64 | Supported | Raspberry Pi, Apple Silicon |
 
-Cal.com does not publish multi-architecture Docker images. ARM64 users need to
-modify `docker-compose.yml` to use the `-arm` image variant (see Troubleshooting).
+Cal.com v6.1.0 provides multi-architecture Docker images (amd64/arm64).
 
 ## Features
 
@@ -85,26 +82,8 @@ modify `docker-compose.yml` to use the `-arm` image variant (see Troubleshooting
 
 ### ARM64 / Raspberry Pi Users
 
-If you see errors like `exec format error` or `no matching manifest for linux/arm64`:
-
-**The default image only supports AMD64.** You need to use the ARM variant:
-
-1. SSH into your Umbrel device
-2. Navigate to the app directory:
-   ```bash
-   cd ~/umbrel/app-data/kasa-calcom
-   ```
-3. Edit `docker-compose.yml` and change:
-   ```yaml
-   # From:
-   image: calcom/cal.com:v5.1.1
-
-   # To:
-   image: calcom/cal.com:v5.1.1-arm
-   ```
-4. Restart the app from Umbrel UI
-
-**Note:** This manual change will be overwritten when the app updates. Check release notes for ARM support status.
+Cal.com v6.1.0 includes multi-architecture support (amd64/arm64). If you see
+`exec format error`, ensure your app is updated to the latest version.
 
 ### Container naming errors
 
