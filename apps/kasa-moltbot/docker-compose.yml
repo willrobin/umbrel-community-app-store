@@ -1,0 +1,33 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: kasa-moltbot_gateway_1
+      APP_PORT: 18789
+
+  gateway:
+    image: ghcr.io/moltbot/moltbot:main
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      NODE_ENV: production
+      # Gateway configuration
+      # Set your API keys after installation:
+      # ANTHROPIC_API_KEY or CLAUDE_AI_SESSION_KEY for Claude
+      # OPENAI_API_KEY for OpenAI models
+      CLAWDBOT_GATEWAY_TOKEN: "${APP_SEED}"
+    command:
+      - node
+      - dist/index.js
+      - gateway
+      - --bind
+      - "0.0.0.0"
+      - --port
+      - "18789"
+    volumes:
+      - ${APP_DATA_DIR}/config:/home/node/.clawdbot
+      - ${APP_DATA_DIR}/workspace:/home/node/clawd
