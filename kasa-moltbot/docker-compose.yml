@@ -3,13 +3,11 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      # Format: <app-id>_<docker-service-name>_1
-      APP_HOST: kasa-moltbot_server_1
+      APP_HOST: server
       APP_PORT: 18789
 
   server:
     image: ghcr.io/moltbot/moltbot:main
-    container_name: kasa-moltbot_server_1
     init: true
     restart: unless-stopped
     stop_grace_period: 30s
@@ -22,7 +20,7 @@ services:
       - dist/index.js
       - gateway
       - --bind
-      - "0.0.0.0"
+      - lan
       - --port
       - "18789"
       - --allow-unconfigured
