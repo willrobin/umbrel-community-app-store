@@ -5,7 +5,7 @@ tagline: Personal AI assistant with multi-channel messaging
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-moltbot/icon.png
 category: Automation
 version: "2026.1.24"
-port: 3006
+port: 3007
 description: >-
   Moltbot is an open-source personal AI assistant that you operate on your own
   devices. It connects to multiple messaging channels including WhatsApp,
