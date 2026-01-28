@@ -5,9 +5,6 @@ services:
     environment:
       APP_HOST: server
       APP_PORT: 18789
-    depends_on:
-      server:
-        condition: service_healthy
 
   server:
     image: ghcr.io/moltbot/moltbot:main
@@ -35,8 +32,8 @@ services:
     tmpfs:
       - /tmp/moltbot:uid=0,gid=0
     healthcheck:
-      test: ["CMD", "node", "-e", "const http=require('http');const r=http.get('http://localhost:18789/__moltbot__/canvas/',{timeout:3000},s=>{process.exit(s.statusCode<500?0:1)});r.on('error',()=>process.exit(1));r.on('timeout',()=>{r.destroy();process.exit(1)})"]
-      interval: 10s
+      test: ["CMD", "node", "-e", "const s=require('net').createConnection(18789,'localhost');s.on('connect',()=>{s.end();process.exit(0)});s.on('error',()=>process.exit(1));setTimeout(()=>process.exit(1),5000)"]
+      interval: 30s
       timeout: 10s
-      retries: 30
-      start_period: 15s
+      retries: 5
+      start_period: 120s
