@@ -22,7 +22,7 @@ services:
       - dist/index.js
       - gateway
       - --bind
-      - "auto"
+      - "lan"
       - --port
       - "18789"
       - --allow-unconfigured
