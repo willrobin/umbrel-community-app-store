@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compose Patcher</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>Compose Patcher</h1>
+                <span class="version" id="daemon-version"></span>
+            </div>
+            <div class="header-right">
+                <span class="status-badge" id="daemon-status">Prüfe...</span>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="tabs">
+            <button class="tab active" data-tab="overview">Übersicht</button>
+            <button class="tab" data-tab="apps">Apps</button>
+            <button class="tab" data-tab="install">Installation</button>
+        </nav>
+
+        <!-- Übersicht -->
+        <section id="tab-overview" class="tab-content active">
+            <div class="card">
+                <h2>Daemon-Status</h2>
+                <div id="status-content">
+                    <p class="loading">Lade Status...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Systemdiagnose</h2>
+                <div id="doctor-content">
+                    <button class="btn" onclick="loadDoctor()">Diagnose starten</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Alle Patches anwenden</h2>
+                    <button class="btn btn-primary" onclick="applyAll()">Alle anwenden</button>
+                </div>
+                <div id="apply-all-result"></div>
+            </div>
+        </section>
+
+        <!-- Apps -->
+        <section id="tab-apps" class="tab-content">
+            <div class="card">
+                <h2>Installierte Apps</h2>
+                <div id="apps-list">
+                    <p class="loading">Lade Apps...</p>
+                </div>
+            </div>
+
+            <!-- App Detail (wird dynamisch eingeblendet) -->
+            <div id="app-detail" class="card" style="display:none;">
+                <div class="card-header">
+                    <h2 id="app-detail-title">App Details</h2>
+                    <button class="btn btn-sm" onclick="closeAppDetail()">Schließen</button>
+                </div>
+
+                <!-- Patch Editor -->
+                <div class="section">
+                    <h3>Patch-Konfiguration</h3>
+                    <div class="editor-toolbar">
+                        <label class="toggle">
+                            <input type="checkbox" id="patch-enabled" onchange="togglePatch()">
+                            <span class="toggle-label">Patch aktiv</span>
+                        </label>
+                        <div class="btn-group">
+                            <button class="btn btn-sm" onclick="savePatch()">Speichern</button>
+                            <button class="btn btn-sm" onclick="dryRun()">Dry Run</button>
+                            <button class="btn btn-sm btn-primary" onclick="applyPatch()">Anwenden</button>
+                        </div>
+                    </div>
+                    <textarea id="patch-editor" class="code-editor" rows="15"
+                              placeholder="# Patch-YAML hier eingeben..."></textarea>
+                    <div class="hint">
+                        <strong>Verfügbare Operationen:</strong>
+                        add_volume, remove_volume, ensure_device, remove_device,
+                        set_env, unset_env, remove_key, replace_value
+                    </div>
+                </div>
+
+                <!-- Diff-Ansicht -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>Diff-Ansicht</h3>
+                        <button class="btn btn-sm" onclick="loadDiff()">Diff laden</button>
+                    </div>
+                    <pre id="diff-output" class="diff-view"></pre>
+                </div>
+
+                <!-- Ergebnis -->
+                <div class="section">
+                    <h3>Ergebnis</h3>
+                    <pre id="app-result" class="result-view"></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation -->
+        <section id="tab-install" class="tab-content">
+            <div class="card">
+                <h2>Host-Daemon Installation</h2>
+                <div id="install-check">
+                    <p class="loading">Prüfe Installation...</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Erstinstallation</h2>
+                <p>Führe diese Befehle auf dem Umbrel-Host via SSH aus:</p>
+                <pre class="code-block"><code># 1. Repository klonen (falls nicht vorhanden)
+cd /home/umbrel
+git clone https://github.com/willrobin/umbrel-community-app-store.git
+
+# 2. Installer ausführen
+cd umbrel-community-app-store/host/compose-patcher
+sudo bash install.sh
+
+# 3. Status prüfen
+compose-patcher doctor</code></pre>
+            </div>
+
+            <div class="card">
+                <h2>Reparatur nach Umbrel-Update</h2>
+                <p>Falls ein UmbrelOS-Update die systemd-Units entfernt hat:</p>
+                <pre class="code-block"><code># 1. Prüfe ob der Daemon noch installiert ist
+ls -la /home/umbrel/compose-patcher/bin/compose-patcher
+
+# 2. Falls Daemon vorhanden, Units neu installieren
+cd /home/umbrel/umbrel-community-app-store/host/compose-patcher
+sudo bash install.sh
+
+# 3. Falls Daemon fehlt, komplett neu installieren
+cd /home/umbrel
+git clone https://github.com/willrobin/umbrel-community-app-store.git
+cd umbrel-community-app-store/host/compose-patcher
+sudo bash install.sh
+
+# 4. Status prüfen
+compose-patcher doctor
+systemctl status compose-patcher-api
+systemctl status compose-patcher.path</code></pre>
+            </div>
+
+            <div class="card">
+                <h2>Deinstallation</h2>
+                <pre class="code-block"><code>cd /home/umbrel/umbrel-community-app-store/host/compose-patcher
+sudo bash uninstall.sh</code></pre>
+                <p class="hint">
+                    Patches und Baselines bleiben erhalten und müssen manuell gelöscht werden.
+                </p>
+            </div>
+
+            <div class="card">
+                <h2>Patch-Beispiel</h2>
+                <p>Erstelle eine Patch-Datei unter <code>/home/umbrel/compose-patcher/patches/&lt;app-name&gt;.yml</code>:</p>
+                <pre class="code-block"><code># Beispiel: Volume für USB-Gerät zu Plex hinzufügen
+enabled: true
+ops:
+  - op: add_volume
+    service: plex
+    value: "/mnt/usb/media:/media:ro"
+
+  - op: set_env
+    service: plex
+    key: PLEX_CLAIM
+    value: "claim-xxxxxxxxxxxx"
+
+  - op: ensure_device
+    service: plex
+    value: "/dev/dri:/dev/dri"</code></pre>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

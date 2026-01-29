@@ -1,0 +1,1392 @@
+#!/usr/bin/env python3
+"""
+compose-patcher — Automatisches Re-Patchen von Umbrel App docker-compose.yml
+
+Dieses Tool überwacht Umbrel App-Updates und wendet benutzerdefinierte Patches
+automatisch wieder an. Es wird als systemd-Service auf dem Host ausgeführt.
+
+Befehle:
+  compose-patcher init            — Initialisiere Verzeichnisse und Token
+  compose-patcher status          — Zeige Daemon-Status
+  compose-patcher apply --all     — Wende alle aktiven Patches an
+  compose-patcher apply --app X   — Wende Patch für App X an
+  compose-patcher dry-run --app X — Simuliere Patch (zeige Diff)
+  compose-patcher diff --app X    — Zeige Diff: Baseline vs aktuell
+  compose-patcher doctor          — Prüfe Umgebung und Konfiguration
+  compose-patcher serve           — Starte API-Server (Unix Socket + Watcher)
+"""
+
+import argparse
+import copy
+import datetime
+import difflib
+import fcntl
+import hashlib
+import http.server
+import json
+import logging
+import os
+import pathlib
+import secrets
+import shutil
+import signal
+import socket
+import socketserver
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import traceback
+
+try:
+    import yaml
+except ImportError:
+    print(
+        "FEHLER: PyYAML nicht gefunden. Installation: pip3 install pyyaml",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+# ─── Konfiguration ────────────────────────────────────────────────────────────
+
+VERSION = "1.0.0"
+
+PATCHER_HOME = pathlib.Path(
+    os.environ.get("PATCHER_HOME", "/home/umbrel/compose-patcher")
+)
+UMBREL_APP_DATA = pathlib.Path(
+    os.environ.get("UMBREL_APP_DATA", "/home/umbrel/umbrel/app-data")
+)
+
+PATCHES_DIR = PATCHER_HOME / "patches"
+BASELINES_DIR = PATCHER_HOME / "baselines"
+LOGS_DIR = PATCHER_HOME / "logs"
+BIN_DIR = PATCHER_HOME / "bin"
+
+LOCK_FILE = PATCHER_HOME / "patcher.lock"
+TOKEN_FILE = PATCHER_HOME / "daemon.token"
+SOCKET_PATH = PATCHER_HOME / "daemon.sock"
+STATE_FILE = PATCHER_HOME / "state.json"
+
+MAX_BACKUPS = 20
+COMPOSE_FILENAMES = ["docker-compose.yml", "docker_compose.yml"]
+WATCH_INTERVAL = 30  # Sekunden zwischen Polling-Durchläufen
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+
+
+def setup_logging(verbose=False):
+    """Konfiguriere Logging nach stdout und optional in Datei."""
+    level = logging.DEBUG if verbose else logging.INFO
+    fmt = "%(asctime)s [%(levelname)s] %(message)s"
+    handlers = [logging.StreamHandler(sys.stdout)]
+
+    log_file = LOGS_DIR / "compose-patcher.log"
+    if LOGS_DIR.exists():
+        try:
+            fh = logging.FileHandler(str(log_file), encoding="utf-8")
+            handlers.append(fh)
+        except (OSError, PermissionError):
+            pass
+
+    logging.basicConfig(level=level, format=fmt, handlers=handlers)
+    return logging.getLogger("compose-patcher")
+
+
+# Wird in main() initialisiert
+log = logging.getLogger("compose-patcher")
+
+# ─── State Management ─────────────────────────────────────────────────────────
+
+
+class StateManager:
+    """Verwaltet den persistenten Zustand des Daemons."""
+
+    def __init__(self):
+        self.state = {
+            "version": VERSION,
+            "last_run": None,
+            "last_error": None,
+            "runs_total": 0,
+            "apps_patched": {},
+        }
+        self._load()
+
+    def _load(self):
+        if STATE_FILE.exists():
+            try:
+                with open(STATE_FILE) as f:
+                    saved = json.load(f)
+                self.state.update(saved)
+            except (json.JSONDecodeError, OSError):
+                pass
+
+    def save(self):
+        try:
+            STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+            tmp = STATE_FILE.with_suffix(".tmp")
+            with open(tmp, "w") as f:
+                json.dump(self.state, f, indent=2, default=str)
+            tmp.rename(STATE_FILE)
+        except OSError as e:
+            log.error(f"State-Speicherung fehlgeschlagen: {e}")
+
+    def record_run(self, app=None, success=True, error=None):
+        now = datetime.datetime.now().isoformat()
+        self.state["last_run"] = now
+        self.state["runs_total"] += 1
+        if error:
+            self.state["last_error"] = {"time": now, "message": str(error)}
+        if app:
+            self.state.setdefault("apps_patched", {})[app] = {
+                "last_run": now,
+                "success": success,
+                "error": str(error) if error else None,
+            }
+        self.save()
+
+    def to_dict(self):
+        return dict(self.state)
+
+
+# ─── Hilfsfunktionen ──────────────────────────────────────────────────────────
+
+
+def find_compose_file(app_dir):
+    """Finde die docker-compose Datei in einem App-Verzeichnis."""
+    for name in COMPOSE_FILENAMES:
+        p = app_dir / name
+        if p.exists():
+            return p
+    return None
+
+
+def list_installed_apps():
+    """Liste alle installierten Umbrel Apps auf."""
+    apps = []
+    if not UMBREL_APP_DATA.exists():
+        return apps
+    try:
+        entries = sorted(UMBREL_APP_DATA.iterdir())
+    except OSError:
+        return apps
+    for d in entries:
+        if d.is_dir() and not d.name.startswith("."):
+            compose = find_compose_file(d)
+            if compose:
+                apps.append(
+                    {
+                        "id": d.name,
+                        "path": str(d),
+                        "compose_file": str(compose),
+                    }
+                )
+    return apps
+
+
+def load_yaml_file(path):
+    """Lade YAML-Datei sicher."""
+    with open(path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f) or {}
+
+
+def dump_yaml_str(data):
+    """Serialisiere YAML mit sauberer Formatierung."""
+    return yaml.dump(
+        data,
+        default_flow_style=False,
+        allow_unicode=True,
+        sort_keys=False,
+        width=120,
+    )
+
+
+def file_hash(path):
+    """Berechne SHA256-Hash einer Datei."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()[:16]
+
+
+def acquire_lock():
+    """Erwirb exklusiven Lock (flock) für den Patcher."""
+    LOCK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fd = open(LOCK_FILE, "w")
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return fd
+    except BlockingIOError:
+        fd.close()
+        return None
+
+
+def release_lock(fd):
+    """Gib den Lock frei."""
+    if fd:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+            fd.close()
+        except OSError:
+            pass
+
+
+def ensure_token():
+    """Stelle sicher, dass ein API-Token existiert und gib ihn zurück."""
+    TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if TOKEN_FILE.exists():
+        return TOKEN_FILE.read_text().strip()
+    token = secrets.token_urlsafe(32)
+    TOKEN_FILE.write_text(token + "\n")
+    os.chmod(str(TOKEN_FILE), 0o600)
+    return token
+
+
+# ─── Backup & Baseline ────────────────────────────────────────────────────────
+
+
+def create_backup(compose_path):
+    """Erstelle ein Backup der aktuellen Compose-Datei."""
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup = pathlib.Path(f"{compose_path}.bak.{ts}")
+    shutil.copy2(str(compose_path), str(backup))
+    log.info(f"Backup erstellt: {backup}")
+
+    # Alte Backups rotieren
+    parent = compose_path.parent
+    pattern = compose_path.name + ".bak.*"
+    backups = sorted(
+        parent.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
+    )
+    for old in backups[MAX_BACKUPS:]:
+        old.unlink()
+        log.debug(f"Altes Backup gelöscht: {old}")
+
+    return backup
+
+
+def save_baseline(app_id, compose_path):
+    """Speichere eine Baseline-Kopie der Compose-Datei."""
+    bl_dir = BASELINES_DIR / app_id
+    bl_dir.mkdir(parents=True, exist_ok=True)
+
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    h = file_hash(compose_path)
+    dest = bl_dir / f"{ts}_{h}.yml"
+    shutil.copy2(str(compose_path), str(dest))
+
+    # latest-Symlink aktualisieren
+    latest = bl_dir / "latest.yml"
+    if latest.is_symlink() or latest.exists():
+        latest.unlink()
+    latest.symlink_to(dest.name)
+
+    log.info(f"Baseline gespeichert: {dest}")
+    return dest
+
+
+def get_baseline(app_id):
+    """Hole den Pfad zur letzten Baseline."""
+    latest = BASELINES_DIR / app_id / "latest.yml"
+    if latest.exists():
+        return latest.resolve()
+    return None
+
+
+# ─── Validierung ──────────────────────────────────────────────────────────────
+
+
+def validate_compose(compose_path):
+    """Validiere eine docker-compose Datei. Gibt (valid, message) zurück."""
+    # Methode 1: docker compose config
+    for cmd in [
+        ["docker", "compose", "-f", str(compose_path), "config", "-q"],
+        ["docker-compose", "-f", str(compose_path), "config", "-q"],
+    ]:
+        try:
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=30
+            )
+            if result.returncode == 0:
+                return True, "docker compose config: OK"
+            else:
+                return (
+                    False,
+                    f"docker compose config fehlgeschlagen: {result.stderr.strip()}",
+                )
+        except FileNotFoundError:
+            continue
+        except subprocess.TimeoutExpired:
+            continue
+
+    # Methode 2: YAML-Syntax + Minimalprüfung
+    try:
+        data = load_yaml_file(compose_path)
+        if not isinstance(data, dict):
+            return False, "YAML ist kein Dictionary"
+        if "services" not in data and "version" not in data:
+            return False, "Weder 'services' noch 'version' gefunden"
+        if "services" in data and not isinstance(data["services"], dict):
+            return False, "'services' ist kein Dictionary"
+        return True, "YAML-Syntax: OK (docker compose nicht verfügbar)"
+    except yaml.YAMLError as e:
+        return False, f"YAML-Syntaxfehler: {e}"
+
+
+# ─── Patch Engine ─────────────────────────────────────────────────────────────
+
+
+def load_patch(app_id):
+    """Lade Patch-Datei für eine App."""
+    pf = PATCHES_DIR / f"{app_id}.yml"
+    if not pf.exists():
+        return None
+    try:
+        return load_yaml_file(pf)
+    except Exception as e:
+        log.error(f"Patch-Datei für {app_id} fehlerhaft: {e}")
+        return None
+
+
+def save_patch(app_id, patch_data):
+    """Speichere Patch-Datei für eine App."""
+    PATCHES_DIR.mkdir(parents=True, exist_ok=True)
+    pf = PATCHES_DIR / f"{app_id}.yml"
+    with open(pf, "w", encoding="utf-8") as f:
+        yaml.dump(
+            patch_data,
+            f,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
+        )
+    log.info(f"Patch gespeichert: {pf}")
+
+
+def is_patch_enabled(patch):
+    """Prüfe ob ein Patch aktiviert ist."""
+    return patch.get("enabled", False) if patch else False
+
+
+def _ensure_service(compose, service):
+    """Stelle sicher, dass der Service-Eintrag existiert."""
+    compose.setdefault("services", {})
+    compose["services"].setdefault(service, {})
+    return compose["services"][service]
+
+
+def _ensure_list(svc, key):
+    """Stelle sicher, dass ein Schlüssel eine Liste ist."""
+    if key not in svc:
+        svc[key] = []
+    elif not isinstance(svc[key], list):
+        svc[key] = [svc[key]]
+    return svc[key]
+
+
+def _navigate_path(obj, path_str):
+    """Navigiere einen Punkt-getrennten Pfad in einem Dict.
+
+    Gibt (parent_dict, last_key) zurück oder (None, None) wenn nicht gefunden.
+    """
+    parts = path_str.split(".")
+    current = obj
+    for part in parts[:-1]:
+        if isinstance(current, dict) and part in current:
+            current = current[part]
+        else:
+            return None, None
+    return current, parts[-1]
+
+
+def apply_op(compose, op_def):
+    """Wende eine einzelne Patch-Operation auf die Compose-Daten an.
+
+    Unterstützte Operationen:
+      - add_volume(service, value)
+      - remove_volume(service, value)
+      - ensure_device(service, value)
+      - remove_device(service, value)
+      - set_env(service, key, value)
+      - unset_env(service, key)
+      - remove_key(service, path)
+      - replace_value(service, path, value)
+    """
+    op = op_def.get("op", "")
+    service_name = op_def.get("service", "")
+    value = op_def.get("value")
+
+    if op == "add_volume":
+        svc = _ensure_service(compose, service_name)
+        vols = _ensure_list(svc, "volumes")
+        if value not in vols:
+            vols.append(value)
+            log.debug(f"  add_volume: {service_name} += {value}")
+
+    elif op == "remove_volume":
+        svc = compose.get("services", {}).get(service_name, {})
+        vols = svc.get("volumes", [])
+        if isinstance(vols, list) and value in vols:
+            vols.remove(value)
+            log.debug(f"  remove_volume: {service_name} -= {value}")
+
+    elif op == "ensure_device":
+        svc = _ensure_service(compose, service_name)
+        devs = _ensure_list(svc, "devices")
+        if value not in devs:
+            devs.append(value)
+            log.debug(f"  ensure_device: {service_name} += {value}")
+
+    elif op == "remove_device":
+        svc = compose.get("services", {}).get(service_name, {})
+        devs = svc.get("devices", [])
+        if isinstance(devs, list) and value in devs:
+            devs.remove(value)
+            log.debug(f"  remove_device: {service_name} -= {value}")
+
+    elif op == "set_env":
+        key = op_def.get("key", "")
+        svc = _ensure_service(compose, service_name)
+        env = svc.get("environment")
+
+        if isinstance(env, list):
+            # List-Style: ["KEY=VALUE", ...]
+            prefix = f"{key}="
+            new_entry = f"{key}={value}"
+            found = False
+            for i, item in enumerate(env):
+                if isinstance(item, str) and item.startswith(prefix):
+                    env[i] = new_entry
+                    found = True
+                    break
+            if not found:
+                env.append(new_entry)
+        elif isinstance(env, dict):
+            # Map-Style: {KEY: VALUE, ...}
+            env[key] = value
+        else:
+            # Environment nicht vorhanden oder ungültiger Typ
+            svc["environment"] = {key: value}
+
+        log.debug(f"  set_env: {service_name}.{key} = [REDACTED]")
+
+    elif op == "unset_env":
+        key = op_def.get("key", "")
+        svc = compose.get("services", {}).get(service_name, {})
+        env = svc.get("environment")
+        if isinstance(env, list):
+            prefix = f"{key}="
+            svc["environment"] = [
+                e
+                for e in env
+                if not (isinstance(e, str) and e.startswith(prefix))
+            ]
+        elif isinstance(env, dict) and key in env:
+            del env[key]
+        log.debug(f"  unset_env: {service_name}.{key}")
+
+    elif op == "remove_key":
+        path = op_def.get("path", "")
+        svc = compose.get("services", {}).get(service_name, {})
+        parent, last_key = _navigate_path(svc, path)
+        if parent is not None and isinstance(parent, dict) and last_key in parent:
+            del parent[last_key]
+            log.debug(f"  remove_key: {service_name}.{path}")
+
+    elif op == "replace_value":
+        path = op_def.get("path", "")
+        svc = _ensure_service(compose, service_name)
+        parent, last_key = _navigate_path(svc, path)
+        if parent is not None and isinstance(parent, dict):
+            parent[last_key] = value
+            log.debug(f"  replace_value: {service_name}.{path}")
+
+    else:
+        log.warning(f"  Unbekannte Operation: {op}")
+
+    return compose
+
+
+def apply_patch(compose_data, patch):
+    """Wende alle Operationen eines Patches auf Compose-Daten an."""
+    result = copy.deepcopy(compose_data)
+    ops = patch.get("ops", [])
+    for op_def in ops:
+        try:
+            result = apply_op(result, op_def)
+        except Exception as e:
+            log.error(f"  Operation fehlgeschlagen: {op_def} — {e}")
+            raise
+    return result
+
+
+# ─── Diff ─────────────────────────────────────────────────────────────────────
+
+
+def compute_diff(text_a, text_b, label_a="vorher", label_b="nachher"):
+    """Berechne einen unified diff zwischen zwei Texten."""
+    lines_a = text_a.splitlines(keepends=True)
+    lines_b = text_b.splitlines(keepends=True)
+    diff = difflib.unified_diff(
+        lines_a, lines_b, fromfile=label_a, tofile=label_b
+    )
+    return "".join(diff)
+
+
+def diff_baseline_vs_current(app_id):
+    """Vergleiche Baseline mit aktuellem Compose-Inhalt.
+
+    Gibt (diff_text, error_message) zurück.
+    """
+    baseline = get_baseline(app_id)
+    if not baseline:
+        return None, "Keine Baseline vorhanden"
+
+    app_dir = UMBREL_APP_DATA / app_id
+    compose = find_compose_file(app_dir)
+    if not compose:
+        return None, "Compose-Datei nicht gefunden"
+
+    bl_text = baseline.read_text(encoding="utf-8")
+    cur_text = compose.read_text(encoding="utf-8")
+
+    d = compute_diff(
+        bl_text,
+        cur_text,
+        label_a=f"baseline ({baseline.name})",
+        label_b=f"aktuell ({compose.name})",
+    )
+    if not d:
+        return "", "Keine Unterschiede"
+    return d, None
+
+
+# ─── Kernbefehle ──────────────────────────────────────────────────────────────
+
+
+def cmd_apply(app_id, dry_run=False, state=None):
+    """Wende Patch für eine App an.
+
+    Gibt (success, message, diff) zurück.
+    """
+    app_dir = UMBREL_APP_DATA / app_id
+    compose_path = find_compose_file(app_dir)
+    if not compose_path:
+        msg = f"Compose-Datei für {app_id} nicht gefunden"
+        log.error(msg)
+        return False, msg, None
+
+    patch = load_patch(app_id)
+    if not patch:
+        msg = f"Kein Patch für {app_id} vorhanden"
+        log.info(msg)
+        return True, msg, None
+
+    if not is_patch_enabled(patch):
+        msg = f"Patch für {app_id} ist deaktiviert"
+        log.info(msg)
+        return True, msg, None
+
+    # Aktuelle Compose laden
+    try:
+        compose_data = load_yaml_file(compose_path)
+    except Exception as e:
+        msg = f"Compose-Datei für {app_id} nicht lesbar: {e}"
+        log.error(msg)
+        return False, msg, None
+
+    original_text = compose_path.read_text(encoding="utf-8")
+
+    # Patch anwenden
+    try:
+        patched_data = apply_patch(compose_data, patch)
+    except Exception as e:
+        msg = f"Patch-Anwendung für {app_id} fehlgeschlagen: {e}"
+        log.error(msg)
+        if state:
+            state.record_run(app=app_id, success=False, error=msg)
+        return False, msg, None
+
+    patched_text = dump_yaml_str(patched_data)
+
+    # Diff berechnen
+    diff = compute_diff(
+        original_text,
+        patched_text,
+        label_a=f"original ({compose_path.name})",
+        label_b=f"patched ({compose_path.name})",
+    )
+
+    if not diff:
+        msg = f"Patch für {app_id}: keine Änderungen nötig (bereits aktuell)"
+        log.info(msg)
+        if state:
+            state.record_run(app=app_id, success=True)
+        return True, msg, None
+
+    if dry_run:
+        msg = f"Dry-run für {app_id}: Änderungen würden angewendet"
+        return True, msg, diff
+
+    # Baseline speichern (vor dem Patchen)
+    try:
+        save_baseline(app_id, compose_path)
+    except Exception as e:
+        log.warning(
+            f"Baseline für {app_id} konnte nicht gespeichert werden: {e}"
+        )
+
+    # Backup erstellen
+    try:
+        backup = create_backup(compose_path)
+    except Exception as e:
+        msg = f"Backup für {app_id} fehlgeschlagen: {e}"
+        log.error(msg)
+        return False, msg, None
+
+    # Patch in temporäre Datei schreiben, validieren, atomar ersetzen
+    tmp_path = None
+    try:
+        tmp_fd = tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".yml",
+            dir=str(compose_path.parent),
+            delete=False,
+            encoding="utf-8",
+        )
+        tmp_fd.write(patched_text)
+        tmp_fd.close()
+        tmp_path = pathlib.Path(tmp_fd.name)
+
+        # Validierung
+        valid, val_msg = validate_compose(tmp_path)
+        if not valid:
+            tmp_path.unlink(missing_ok=True)
+            msg = f"Validierung für {app_id} fehlgeschlagen: {val_msg}"
+            log.error(msg)
+            if state:
+                state.record_run(app=app_id, success=False, error=msg)
+            return False, msg, diff
+
+        # Dateiberechtigungen übernehmen und atomar ersetzen
+        shutil.copymode(str(compose_path), str(tmp_path))
+        tmp_path.rename(compose_path)
+
+        msg = f"Patch für {app_id} erfolgreich angewendet"
+        log.info(msg)
+        if state:
+            state.record_run(app=app_id, success=True)
+        return True, msg, diff
+
+    except Exception as e:
+        # Cleanup temporäre Datei
+        if tmp_path and tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
+        # Restore aus Backup
+        try:
+            shutil.copy2(str(backup), str(compose_path))
+            log.info(f"Restore aus Backup für {app_id}")
+        except Exception as re:
+            log.error(f"Restore fehlgeschlagen für {app_id}: {re}")
+
+        msg = f"Patch für {app_id} fehlgeschlagen, Backup restored: {e}"
+        log.error(msg)
+        if state:
+            state.record_run(app=app_id, success=False, error=msg)
+        return False, msg, None
+
+
+def cmd_apply_all(dry_run=False, state=None):
+    """Wende alle aktiven Patches an."""
+    apps = list_installed_apps()
+    results = []
+    for app in apps:
+        patch = load_patch(app["id"])
+        if patch and is_patch_enabled(patch):
+            success, msg, diff = cmd_apply(
+                app["id"], dry_run=dry_run, state=state
+            )
+            results.append(
+                {
+                    "app": app["id"],
+                    "success": success,
+                    "message": msg,
+                    "diff": diff,
+                }
+            )
+    return results
+
+
+def cmd_status(state):
+    """Sammle Status-Informationen."""
+    info = state.to_dict()
+    info["daemon_version"] = VERSION
+    info["patcher_home"] = str(PATCHER_HOME)
+    info["umbrel_app_data"] = str(UMBREL_APP_DATA)
+    info["app_data_exists"] = UMBREL_APP_DATA.exists()
+    info["patches_dir_exists"] = PATCHES_DIR.exists()
+
+    # Systemd-Status prüfen
+    for unit in [
+        "compose-patcher-api.service",
+        "compose-patcher.path",
+        "compose-patcher-watcher.service",
+    ]:
+        key = f"systemd_{unit.replace('.', '_').replace('-', '_')}"
+        try:
+            result = subprocess.run(
+                ["systemctl", "is-active", unit],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            info[key] = result.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+            info[key] = "unknown"
+
+    return info
+
+
+def cmd_doctor():
+    """Prüfe Umgebung und Konfiguration."""
+    checks = []
+
+    # Python-Version
+    checks.append(
+        {
+            "check": "Python Version",
+            "status": "ok",
+            "detail": sys.version.split()[0],
+        }
+    )
+
+    # PyYAML
+    yaml_ver = getattr(yaml, "__version__", "installiert")
+    checks.append(
+        {"check": "PyYAML", "status": "ok", "detail": yaml_ver}
+    )
+
+    # Verzeichnisse
+    for name, path in [
+        ("PATCHER_HOME", PATCHER_HOME),
+        ("patches", PATCHES_DIR),
+        ("baselines", BASELINES_DIR),
+        ("logs", LOGS_DIR),
+    ]:
+        checks.append(
+            {
+                "check": f"Verzeichnis: {name}",
+                "status": "ok" if path.exists() else "fehlt",
+                "detail": str(path),
+            }
+        )
+
+    # Umbrel app-data
+    checks.append(
+        {
+            "check": "Umbrel app-data",
+            "status": "ok" if UMBREL_APP_DATA.exists() else "fehlt",
+            "detail": str(UMBREL_APP_DATA),
+        }
+    )
+
+    # Docker Compose
+    docker_ok = False
+    for cmd in [
+        ["docker", "compose", "version"],
+        ["docker-compose", "version"],
+    ]:
+        try:
+            r = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=10
+            )
+            if r.returncode == 0:
+                checks.append(
+                    {
+                        "check": "Docker Compose",
+                        "status": "ok",
+                        "detail": r.stdout.strip(),
+                    }
+                )
+                docker_ok = True
+                break
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            continue
+    if not docker_ok:
+        checks.append(
+            {
+                "check": "Docker Compose",
+                "status": "warnung",
+                "detail": "nicht gefunden (YAML-Validierung wird verwendet)",
+            }
+        )
+
+    # Token
+    checks.append(
+        {
+            "check": "API Token",
+            "status": "ok" if TOKEN_FILE.exists() else "fehlt",
+            "detail": str(TOKEN_FILE),
+        }
+    )
+
+    # Socket
+    checks.append(
+        {
+            "check": "API Socket",
+            "status": "ok" if SOCKET_PATH.exists() else "inaktiv",
+            "detail": str(SOCKET_PATH),
+        }
+    )
+
+    # Systemd Units
+    for unit in [
+        "compose-patcher-api.service",
+        "compose-patcher.path",
+        "compose-patcher-watcher.service",
+    ]:
+        unit_file = pathlib.Path(f"/etc/systemd/system/{unit}")
+        try:
+            r = subprocess.run(
+                ["systemctl", "is-active", unit],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            status = r.stdout.strip()
+        except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+            status = "unknown"
+        checks.append(
+            {
+                "check": f"systemd: {unit}",
+                "status": "ok" if status == "active" else status,
+                "detail": (
+                    f"Datei: {'vorhanden' if unit_file.exists() else 'fehlt'}"
+                    f", Status: {status}"
+                ),
+            }
+        )
+
+    return checks
+
+
+# ─── Watcher (Polling) ────────────────────────────────────────────────────────
+
+
+def watch_loop(state, interval=WATCH_INTERVAL):
+    """Polling-basierter Watcher für Compose-Datei-Änderungen.
+
+    Prüft alle `interval` Sekunden, ob sich Compose-Dateien geändert haben
+    und wendet ggf. aktive Patches neu an.
+    """
+    known_hashes = {}
+    log.info(
+        f"Watcher gestartet (Polling-Intervall: {interval}s)"
+    )
+
+    while True:
+        try:
+            apps = list_installed_apps()
+            for app in apps:
+                compose = pathlib.Path(app["compose_file"])
+                try:
+                    current_hash = file_hash(compose)
+                except OSError:
+                    continue
+
+                prev_hash = known_hashes.get(app["id"])
+
+                if prev_hash is not None and prev_hash != current_hash:
+                    log.info(
+                        f"Änderung erkannt: {app['id']} ({compose})"
+                    )
+                    patch = load_patch(app["id"])
+                    if patch and is_patch_enabled(patch):
+                        lock = acquire_lock()
+                        if lock:
+                            try:
+                                cmd_apply(app["id"], state=state)
+                            finally:
+                                release_lock(lock)
+                    else:
+                        log.debug(
+                            f"Kein aktiver Patch für {app['id']}, "
+                            f"Änderung wird ignoriert"
+                        )
+
+                known_hashes[app["id"]] = current_hash
+
+        except Exception as e:
+            log.error(f"Watcher-Fehler: {e}")
+
+        time.sleep(interval)
+
+
+# ─── API-Server (Unix Socket) ─────────────────────────────────────────────────
+
+
+class UnixHTTPServer(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
+    """Threaded HTTP-Server über Unix-Domain-Socket."""
+
+    daemon_threads = True
+    allow_reuse_address = True
+
+    def __init__(self, socket_path, handler_class, state_manager):
+        self.state_manager = state_manager
+        self._token = ensure_token()
+        sock_str = str(socket_path)
+        if os.path.exists(sock_str):
+            os.unlink(sock_str)
+        super().__init__(sock_str, handler_class)
+        os.chmod(sock_str, 0o660)
+
+    def get_request(self):
+        req, addr = super().get_request()
+        # BaseHTTPRequestHandler erwartet ein (host, port) Tuple
+        return req, ("unix", 0)
+
+
+class APIHandler(http.server.BaseHTTPRequestHandler):
+    """HTTP-Request-Handler für die Daemon-API."""
+
+    server_version = f"compose-patcher/{VERSION}"
+
+    def log_message(self, fmt, *args):
+        log.debug(fmt % args)
+
+    def _send_json(self, data, status=200):
+        body = json.dumps(data, indent=2, default=str).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", len(body))
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _read_body(self):
+        length = int(self.headers.get("Content-Length", 0))
+        if length > 0:
+            return self.rfile.read(length)
+        return b""
+
+    def _route(self, method):
+        path = self.path.rstrip("/")
+        parts = path.split("/")
+
+        if method == "GET":
+            if path == "/api/status":
+                return self._handle_status()
+            elif path == "/api/apps":
+                return self._handle_apps()
+            elif path == "/api/doctor":
+                return self._handle_doctor()
+            elif (
+                len(parts) == 4
+                and parts[1:3] == ["api", "apps"]
+            ):
+                return self._handle_app_detail(parts[3])
+            elif (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "patch"
+            ):
+                return self._handle_get_patch(parts[3])
+            elif (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "diff"
+            ):
+                return self._handle_diff(parts[3])
+
+        elif method == "POST":
+            if path == "/api/apply-all":
+                return self._handle_apply_all()
+            elif (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "apply"
+            ):
+                return self._handle_apply(parts[3])
+            elif (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "dry-run"
+            ):
+                return self._handle_dry_run(parts[3])
+            elif (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "toggle"
+            ):
+                return self._handle_toggle(parts[3])
+
+        elif method == "PUT":
+            if (
+                len(parts) == 5
+                and parts[1:3] == ["api", "apps"]
+                and parts[4] == "patch"
+            ):
+                return self._handle_put_patch(parts[3])
+
+        elif method == "OPTIONS":
+            self.send_response(200)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.send_header(
+                "Access-Control-Allow-Methods",
+                "GET, POST, PUT, OPTIONS",
+            )
+            self.send_header(
+                "Access-Control-Allow-Headers",
+                "Content-Type, Authorization",
+            )
+            self.end_headers()
+            return
+
+        self._send_json({"error": "Nicht gefunden"}, 404)
+
+    def do_GET(self):
+        self._route("GET")
+
+    def do_POST(self):
+        self._route("POST")
+
+    def do_PUT(self):
+        self._route("PUT")
+
+    def do_OPTIONS(self):
+        self._route("OPTIONS")
+
+    # ─── API-Handler ──────────────────────────────────────────────────
+
+    def _handle_status(self):
+        state = self.server.state_manager
+        info = cmd_status(state)
+        self._send_json(info)
+
+    def _handle_apps(self):
+        apps = list_installed_apps()
+        for app in apps:
+            patch = load_patch(app["id"])
+            app["has_patch"] = patch is not None
+            app["patch_enabled"] = is_patch_enabled(patch)
+            bl = get_baseline(app["id"])
+            app["has_baseline"] = bl is not None
+            app_state = (
+                self.server.state_manager.state.get("apps_patched", {}).get(
+                    app["id"]
+                )
+            )
+            app["last_run"] = (
+                app_state.get("last_run") if app_state else None
+            )
+            app["last_success"] = (
+                app_state.get("success") if app_state else None
+            )
+            app["last_error"] = (
+                app_state.get("error") if app_state else None
+            )
+        self._send_json({"apps": apps})
+
+    def _handle_app_detail(self, app_id):
+        app_dir = UMBREL_APP_DATA / app_id
+        compose = find_compose_file(app_dir)
+        if not compose:
+            self._send_json(
+                {"error": f"App {app_id} nicht gefunden"}, 404
+            )
+            return
+        patch = load_patch(app_id)
+        bl = get_baseline(app_id)
+        self._send_json(
+            {
+                "id": app_id,
+                "compose_file": str(compose),
+                "compose_content": (
+                    compose.read_text(encoding="utf-8")
+                    if compose.exists()
+                    else ""
+                ),
+                "has_patch": patch is not None,
+                "patch_enabled": is_patch_enabled(patch),
+                "has_baseline": bl is not None,
+                "baseline_file": str(bl) if bl else None,
+            }
+        )
+
+    def _handle_get_patch(self, app_id):
+        pf = PATCHES_DIR / f"{app_id}.yml"
+        if pf.exists():
+            content = pf.read_text(encoding="utf-8")
+            self._send_json(
+                {"app": app_id, "content": content, "exists": True}
+            )
+        else:
+            # Liefere ein Template als Vorlage
+            template = dump_yaml_str(
+                {
+                    "enabled": False,
+                    "ops": [
+                        {
+                            "op": "add_volume",
+                            "service": "server",
+                            "value": "/host/pfad:/container/pfad",
+                        },
+                    ],
+                }
+            )
+            self._send_json(
+                {"app": app_id, "content": template, "exists": False}
+            )
+
+    def _handle_put_patch(self, app_id):
+        body = self._read_body()
+        try:
+            data = json.loads(body)
+            content = data.get("content", "")
+            # YAML validieren
+            parsed = yaml.safe_load(content)
+            if not isinstance(parsed, dict):
+                self._send_json(
+                    {"error": "Patch muss ein YAML-Dictionary sein"}, 400
+                )
+                return
+            # Speichern
+            PATCHES_DIR.mkdir(parents=True, exist_ok=True)
+            pf = PATCHES_DIR / f"{app_id}.yml"
+            pf.write_text(content, encoding="utf-8")
+            self._send_json(
+                {"ok": True, "message": f"Patch für {app_id} gespeichert"}
+            )
+        except json.JSONDecodeError as e:
+            self._send_json({"error": f"Ungültiges JSON: {e}"}, 400)
+        except yaml.YAMLError as e:
+            self._send_json({"error": f"Ungültiges YAML: {e}"}, 400)
+
+    def _handle_toggle(self, app_id):
+        body = self._read_body()
+        try:
+            data = json.loads(body)
+            enabled = bool(data.get("enabled", False))
+        except (json.JSONDecodeError, ValueError):
+            enabled = True
+
+        patch = load_patch(app_id)
+        if not patch:
+            patch = {"enabled": enabled, "ops": []}
+        else:
+            patch["enabled"] = enabled
+        save_patch(app_id, patch)
+        self._send_json({"ok": True, "enabled": enabled})
+
+    def _handle_apply(self, app_id):
+        lock = acquire_lock()
+        if not lock:
+            self._send_json(
+                {"error": "Patcher ist bereits aktiv"}, 409
+            )
+            return
+        try:
+            success, msg, diff = cmd_apply(
+                app_id, state=self.server.state_manager
+            )
+            self._send_json(
+                {"success": success, "message": msg, "diff": diff}
+            )
+        finally:
+            release_lock(lock)
+
+    def _handle_dry_run(self, app_id):
+        success, msg, diff = cmd_apply(app_id, dry_run=True)
+        self._send_json(
+            {"success": success, "message": msg, "diff": diff}
+        )
+
+    def _handle_apply_all(self):
+        lock = acquire_lock()
+        if not lock:
+            self._send_json(
+                {"error": "Patcher ist bereits aktiv"}, 409
+            )
+            return
+        try:
+            results = cmd_apply_all(
+                state=self.server.state_manager
+            )
+            self._send_json({"results": results})
+        finally:
+            release_lock(lock)
+
+    def _handle_diff(self, app_id):
+        diff, err = diff_baseline_vs_current(app_id)
+        if err and diff is None:
+            self._send_json({"error": err}, 404)
+        else:
+            self._send_json(
+                {"diff": diff or "", "message": err or "OK"}
+            )
+
+    def _handle_doctor(self):
+        checks = cmd_doctor()
+        self._send_json({"checks": checks})
+
+
+def run_server(state):
+    """Starte API-Server + Hintergrund-Watcher."""
+    ensure_token()
+    sock = str(SOCKET_PATH)
+
+    server = UnixHTTPServer(sock, APIHandler, state)
+    log.info(f"API-Server gestartet: {sock}")
+
+    # Watcher-Thread starten
+    watcher = threading.Thread(
+        target=watch_loop, args=(state,), daemon=True
+    )
+    watcher.start()
+
+    def shutdown_handler(signum, frame):
+        log.info("Server wird beendet (Signal %d)...", signum)
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, shutdown_handler)
+    signal.signal(signal.SIGINT, shutdown_handler)
+
+    try:
+        server.serve_forever()
+    finally:
+        if os.path.exists(sock):
+            os.unlink(sock)
+        log.info("Server beendet.")
+
+
+# ─── CLI ──────────────────────────────────────────────────────────────────────
+
+
+def main():
+    global log
+
+    parser = argparse.ArgumentParser(
+        description=(
+            "compose-patcher — Automatisches Re-Patchen "
+            "von Umbrel Compose-Dateien"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Ausführliche Ausgabe"
+    )
+
+    sub = parser.add_subparsers(dest="command", help="Verfügbare Befehle")
+
+    sub.add_parser("init", help="Initialisiere Verzeichnisse und Token")
+    sub.add_parser("status", help="Zeige Daemon-Status")
+
+    p_apply = sub.add_parser("apply", help="Wende Patches an")
+    p_apply.add_argument(
+        "--all",
+        action="store_true",
+        help="Alle aktiven Patches anwenden",
+    )
+    p_apply.add_argument(
+        "--app", type=str, help="Patch für bestimmte App anwenden"
+    )
+
+    p_dry = sub.add_parser("dry-run", help="Simuliere Patch-Anwendung")
+    p_dry.add_argument("--app", type=str, required=True, help="App-ID")
+
+    p_diff = sub.add_parser(
+        "diff", help="Zeige Diff: Baseline vs aktuell"
+    )
+    p_diff.add_argument("--app", type=str, required=True, help="App-ID")
+
+    sub.add_parser("doctor", help="Prüfe Umgebung und Konfiguration")
+    sub.add_parser("serve", help="Starte API-Server + Watcher")
+
+    args = parser.parse_args()
+
+    log = setup_logging(verbose=getattr(args, "verbose", False))
+
+    # Verzeichnisse anlegen
+    for d in [PATCHER_HOME, PATCHES_DIR, BASELINES_DIR, LOGS_DIR, BIN_DIR]:
+        d.mkdir(parents=True, exist_ok=True)
+
+    state = StateManager()
+
+    if args.command == "init":
+        ensure_token()
+        print(f"Verzeichnisse erstellt unter: {PATCHER_HOME}")
+        print(f"Token-Datei: {TOKEN_FILE}")
+        print("Initialisierung abgeschlossen.")
+
+    elif args.command == "status":
+        info = cmd_status(state)
+        print(json.dumps(info, indent=2, default=str))
+
+    elif args.command == "apply":
+        lock = acquire_lock()
+        if not lock:
+            print("FEHLER: Patcher ist bereits aktiv.", file=sys.stderr)
+            sys.exit(1)
+        try:
+            if getattr(args, "all", False):
+                results = cmd_apply_all(state=state)
+                for r in results:
+                    icon = "+" if r["success"] else "!"
+                    print(f"  [{icon}] {r['app']}: {r['message']}")
+                    if r.get("diff"):
+                        print(r["diff"])
+            elif args.app:
+                success, msg, diff = cmd_apply(args.app, state=state)
+                print(msg)
+                if diff:
+                    print(diff)
+                if not success:
+                    sys.exit(1)
+            else:
+                print(
+                    "Bitte --all oder --app angeben.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+        finally:
+            release_lock(lock)
+
+    elif args.command == "dry-run":
+        success, msg, diff = cmd_apply(args.app, dry_run=True)
+        print(msg)
+        if diff:
+            print()
+            print(diff)
+
+    elif args.command == "diff":
+        d, err = diff_baseline_vs_current(args.app)
+        if err and d is None:
+            print(f"FEHLER: {err}", file=sys.stderr)
+            sys.exit(1)
+        elif d:
+            print(d)
+        else:
+            print(err or "Keine Unterschiede")
+
+    elif args.command == "doctor":
+        checks = cmd_doctor()
+        for c in checks:
+            if c["status"] == "ok":
+                icon = "[OK]"
+            elif c["status"] == "warnung":
+                icon = "[!!]"
+            else:
+                icon = "[  ]"
+            print(f"  {icon} {c['check']}: {c['status']} — {c['detail']}")
+
+    elif args.command == "serve":
+        run_server(state)
+
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()

@@ -203,9 +203,10 @@ Keep this table current. Every app must have a unique port.
 | 3005 | Music Assistant |
 | 3006 | Music Assistant Streams |
 | 3007 | Moltbot Gateway |
+| 3008 | Compose Patcher |
 | 8000–8010 | AzuraCast Streaming |
 
-Next available port: **3008**
+Next available port: **3009**
 
 ---
 

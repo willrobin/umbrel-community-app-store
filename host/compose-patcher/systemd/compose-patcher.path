@@ -1,0 +1,12 @@
+[Unit]
+Description=Compose Patcher Dateisystem-Watcher
+Documentation=https://github.com/willrobin/umbrel-community-app-store
+
+[Path]
+# Überwache das app-data Verzeichnis auf Änderungen
+PathChanged=/home/umbrel/umbrel/app-data
+# Debounce: Warte kurz nach Änderung bevor der Service getriggert wird
+MakeDirectory=no
+
+[Install]
+WantedBy=multi-user.target
