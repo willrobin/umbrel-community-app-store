@@ -1,0 +1,17 @@
+version: "3.7"
+
+services:
+  app_proxy:
+    environment:
+      APP_HOST: web
+      APP_PORT: 5000
+
+  web:
+    image: ghcr.io/willrobin/compose-patcher-ui:1.0.0
+    init: true
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+      PORT: "5000"
+    volumes:
+      - /home/umbrel/compose-patcher:/data

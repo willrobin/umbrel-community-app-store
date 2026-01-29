@@ -1,0 +1,28 @@
+[Unit]
+Description=Compose Patcher API-Server und Watcher
+Documentation=https://github.com/willrobin/umbrel-community-app-store
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=simple
+ExecStart=/home/umbrel/compose-patcher/bin/compose-patcher serve
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=compose-patcher
+
+# Sicherheit
+NoNewPrivileges=false
+ProtectHome=no
+ReadWritePaths=/home/umbrel/compose-patcher
+ReadWritePaths=/home/umbrel/umbrel/app-data
+
+# Umgebung
+Environment=PATCHER_HOME=/home/umbrel/compose-patcher
+Environment=UMBREL_APP_DATA=/home/umbrel/umbrel/app-data
+
+[Install]
+WantedBy=multi-user.target
