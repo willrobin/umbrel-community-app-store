@@ -14,6 +14,10 @@ automatisch wieder angewendet.
 ```
 /home/umbrel/compose-patcher/
 ├── bin/compose-patcher          # Hauptprogramm (Python CLI + API-Server)
+├── ui/                          # Web-UI-Dateien (Flask-App)
+│   ├── server.py
+│   ├── templates/index.html
+│   └── static/{app.js,style.css}
 ├── patches/                     # Patch-Regeln pro App (*.yml)
 ├── baselines/                   # Baseline-Kopien der Compose-Dateien
 │   └── <app>/
@@ -37,6 +41,10 @@ git clone https://github.com/willrobin/umbrel-community-app-store.git
 cd umbrel-community-app-store/host/compose-patcher
 sudo bash install.sh
 ```
+
+> **Hinweis:** `install.sh` installiert sowohl den Daemon als auch die
+> UI-Dateien. Danach kann die Umbrel-App „Compose Patcher" aus dem Kasa
+> Community App Store installiert werden.
 
 ### Status prüfen
 

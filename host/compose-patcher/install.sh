@@ -89,6 +89,24 @@ ln -sf "${PATCHER_HOME}/bin/compose-patcher" /usr/local/bin/compose-patcher
 info "Daemon installiert: ${PATCHER_HOME}/bin/compose-patcher"
 info "CLI verfügbar als: /usr/local/bin/compose-patcher"
 
+# ─── UI-Dateien kopieren ────────────────────────────────────────────────────
+
+UI_SRC="${SCRIPT_DIR}/../compose-patcher-ui"
+UI_DEST="${PATCHER_HOME}/ui"
+
+if [[ -d "${UI_SRC}" ]]; then
+    info "Installiere UI-Dateien..."
+    mkdir -p "${UI_DEST}/templates" "${UI_DEST}/static"
+    cp "${UI_SRC}/server.py" "${UI_DEST}/server.py"
+    cp "${UI_SRC}/templates/"* "${UI_DEST}/templates/"
+    cp "${UI_SRC}/static/"* "${UI_DEST}/static/"
+    info "UI installiert: ${UI_DEST}"
+else
+    warn "UI-Quellverzeichnis nicht gefunden: ${UI_SRC}"
+    warn "Die Umbrel-App benötigt die UI-Dateien unter ${UI_DEST}."
+    warn "Bitte das Repository klonen und erneut installieren."
+fi
+
 # ─── Daemon initialisieren ───────────────────────────────────────────────────
 
 info "Initialisiere Daemon..."
