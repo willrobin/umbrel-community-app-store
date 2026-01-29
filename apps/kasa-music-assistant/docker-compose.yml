@@ -7,6 +7,7 @@ services:
     network_mode: host
     # Webserver (UI) on port 3005, stream server on port 3006
     # Using Kasa store port range (3001+) to avoid conflicts
+    # Ports configured via settings.json under core/webserver and core/streams keys
     cap_add:
       - SYS_ADMIN
       - DAC_READ_SEARCH
@@ -18,8 +19,8 @@ services:
     command:
       - -c
       - |
-        # Pre-configure webserver port to 3005 (Kasa store port range)
-        # Music Assistant stores settings in .storage subdirectory
+        # Pre-configure server ports (Kasa store port range)
+        # Music Assistant stores settings in .storage/settings.json
         STORAGE_DIR="/data/.storage"
         SETTINGS_FILE="$$STORAGE_DIR/settings.json"
 
@@ -27,8 +28,9 @@ services:
         mkdir -p "$$STORAGE_DIR"
 
         # Configure settings with correct ports
-        # Music Assistant stores module configs at top level: {module}/values/{key}
-        # The webserver port key is 'bind_port' (not 'port')
+        # Music Assistant stores core module configs under "core/{domain}" keys
+        # e.g., "core/webserver" and "core/streams" in settings.json
+        # The port config key is 'bind_port'
         python3 -c "
         import json
         import os
@@ -46,29 +48,37 @@ services:
                 print(f'Could not load settings: {e}')
                 settings = {}
 
-        # Ensure webserver config exists at TOP LEVEL with bind_port 3005
-        if 'webserver' not in settings:
-            settings['webserver'] = {'values': {}, 'domain': 'webserver'}
-        if 'values' not in settings['webserver']:
-            settings['webserver']['values'] = {}
+        # Ensure webserver config exists under 'core/webserver' with bind_port 3005
+        ws_key = 'core/webserver'
+        if ws_key not in settings:
+            settings[ws_key] = {'values': {}, 'domain': 'webserver'}
+        if 'values' not in settings[ws_key]:
+            settings[ws_key]['values'] = {}
 
         # Set bind_port to 3005 (Kasa store port range)
-        current_port = settings['webserver']['values'].get('bind_port', 8095)
+        current_port = settings[ws_key]['values'].get('bind_port', 8095)
         if current_port in (8095, 8096):
-            settings['webserver']['values']['bind_port'] = 3005
+            settings[ws_key]['values']['bind_port'] = 3005
             print('Set webserver bind_port to 3005')
         else:
             print(f'Webserver bind_port already configured: {current_port}')
 
-        # Ensure streams config exists at TOP LEVEL with bind_port 3006
-        if 'streams' not in settings:
-            settings['streams'] = {'values': {}, 'domain': 'streams'}
-        if 'values' not in settings['streams']:
-            settings['streams']['values'] = {}
-        current_stream_port = settings['streams']['values'].get('bind_port', 8097)
+        # Ensure streams config exists under 'core/streams' with bind_port 3006
+        st_key = 'core/streams'
+        if st_key not in settings:
+            settings[st_key] = {'values': {}, 'domain': 'streams'}
+        if 'values' not in settings[st_key]:
+            settings[st_key]['values'] = {}
+        current_stream_port = settings[st_key]['values'].get('bind_port', 8097)
         if current_stream_port in (8097, 3006):
-            settings['streams']['values']['bind_port'] = 3006
+            settings[st_key]['values']['bind_port'] = 3006
             print('Set streams bind_port to 3006')
+
+        # Clean up old incorrect top-level keys if present
+        for old_key in ('webserver', 'streams'):
+            if old_key in settings and old_key != ws_key and old_key != st_key:
+                del settings[old_key]
+                print(f'Removed old config key: {old_key}')
 
         # Write settings
         with open(settings_file, 'w') as f:
