@@ -27,8 +27,7 @@ submitter: Kasa
 submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/music-assistant/server
 support: https://github.com/music-assistant/server/issues
-gallery:
-  - https://raw.githubusercontent.com/music-assistant/server/main/screenshot.png
+gallery: []
 releaseNotes: >-
   Kasa community store release with Music Assistant Server v2.7.5. Supports
   Spotify, Tidal, YouTube Music, Qobuz, local files, and multi-room audio

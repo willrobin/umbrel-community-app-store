@@ -4,7 +4,7 @@ name: Cal.com
 tagline: Open-source scheduling for individuals and teams
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-calcom/icon.png
 category: Productivity
-version: "6.1.0"
+version: "6.1.13"
 port: 3002
 description: >-
   Cal.com is the open-source Calendly alternative for scheduling meetings and
@@ -26,8 +26,8 @@ support: https://github.com/calcom/cal.com/issues
 gallery:
   - https://user-images.githubusercontent.com/8019099/210054112-5955e812-a76e-4160-9ddd-58f2c72f1cce.png
 releaseNotes: >-
-  Major upgrade to Cal.com v6.1.0. This version includes significant improvements
-  and new features from the Cal.com 6.x release series. Multi-architecture support
+  Patch update to Cal.com v6.1.13 with bug fixes and stability improvements
+  from the Cal.com 6.1.x release series. Multi-architecture support
   (amd64/arm64) ensures compatibility with Intel N100 and other platforms.
 dependencies: []
 path: ""

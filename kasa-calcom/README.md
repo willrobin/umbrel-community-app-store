@@ -11,7 +11,7 @@ let others schedule time with you without the back-and-forth emails.
 | AMD64 | Supported | Intel/AMD PCs, most servers |
 | ARM64 | Supported | Raspberry Pi, Apple Silicon |
 
-Cal.com v6.1.0 provides multi-architecture Docker images (amd64/arm64).
+Cal.com v6.1.13 provides multi-architecture Docker images (amd64/arm64).
 
 ## Features
 
@@ -82,7 +82,7 @@ Cal.com v6.1.0 provides multi-architecture Docker images (amd64/arm64).
 
 ### ARM64 / Raspberry Pi Users
 
-Cal.com v6.1.0 includes multi-architecture support (amd64/arm64). If you see
+Cal.com v6.1.13 includes multi-architecture support (amd64/arm64). If you see
 `exec format error`, ensure your app is updated to the latest version.
 
 ### Container naming errors

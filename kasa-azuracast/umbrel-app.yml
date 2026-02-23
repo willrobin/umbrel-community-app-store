@@ -27,7 +27,7 @@ submission: https://github.com/willrobin/umbrel-community-app-store
 repo: https://github.com/AzuraCast/AzuraCast
 support: https://github.com/AzuraCast/AzuraCast/issues
 gallery:
-  - https://raw.githubusercontent.com/AzuraCast/AzuraCast/main/screenshot.png
+  - https://www.azuracast.com/img/ScreenshotTour.gif
 releaseNotes: >-
   Fixed container startup issues. AzuraCast now uses the official all-in-one
   Docker image with properly configured named volumes. Streaming ports 8000-8010

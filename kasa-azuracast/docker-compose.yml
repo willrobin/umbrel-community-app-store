@@ -10,6 +10,7 @@ services:
     image: ghcr.io/azuracast/azuracast:0.20.3
     init: true
     restart: unless-stopped
+    stop_grace_period: 1m
     environment:
       # AzuraCast uses internal MariaDB and Redis by default
       # These environment variables configure the internal services

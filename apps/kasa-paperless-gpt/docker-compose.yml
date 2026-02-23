@@ -8,8 +8,14 @@ services:
 
   server:
     image: icereed/paperless-gpt:v0.23.0
+    user: "1000:1000"
     init: true
     restart: unless-stopped
+    stop_grace_period: 30s
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges=true
     environment:
       # Set this to your Paperless-ngx URL (Umbrel typically uses port 2349).
       PAPERLESS_BASE_URL: "http://${DEVICE_DOMAIN_NAME}:2349"

@@ -4,6 +4,7 @@ services:
   server:
     image: ghcr.io/music-assistant/server:2.7.5
     restart: unless-stopped
+    stop_grace_period: 30s
     network_mode: host
     # Webserver (UI) on port 3005, stream server on port 3006
     # Using Kasa store port range (3001+) to avoid conflicts

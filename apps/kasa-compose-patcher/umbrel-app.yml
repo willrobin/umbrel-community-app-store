@@ -1,30 +1,33 @@
 manifestVersion: 1
 id: kasa-compose-patcher
 name: Compose Patcher
-tagline: Automatisches Re-Patchen von Docker-Compose nach App-Updates
+tagline: Auto-repatch Docker Compose files after Umbrel app updates
 icon: https://raw.githubusercontent.com/willrobin/umbrel-community-app-store/main/apps/kasa-compose-patcher/icon.png
 category: Utilities
 version: "1.0.0"
 port: 3008
 description: >-
-  Compose Patcher ist ein Werkzeug für UmbrelOS, das benutzerdefinierte
-  Änderungen an Docker-Compose-Dateien automatisch wiederherstellt, wenn
-  Umbrel App-Updates die Konfiguration überschreiben.
+  Compose Patcher is a tool for umbrelOS that automatically restores custom
+  changes to Docker Compose files when Umbrel app updates overwrite the
+  configuration.
 
-  Bei jedem App-Update setzt Umbrel die docker-compose.yml zurück. Wenn du
-  eigene Volumes, Geräte (Devices), Umgebungsvariablen oder andere Anpassungen
-  hinzugefügt hast, gehen diese verloren. Compose Patcher löst dieses Problem
-  durch deklarative Patch-Regeln, die idempotent und automatisch nach jedem
-  Update neu angewendet werden.
 
-  Funktionen umfassen eine Web-UI zum Verwalten von Patch-Regeln pro App,
-  eine Diff-Ansicht (Baseline vs. aktuell), Dry-Run-Simulation, automatisches
-  Backup und Validierung vor jeder Änderung, sowie einen systemd-basierten
-  Dateisystem-Watcher, der Änderungen sofort erkennt.
+  Every time an app is updated, Umbrel resets the docker-compose.yml. If you
+  have added custom volumes, devices, environment variables, or other
+  modifications, they are lost. Compose Patcher solves this problem with
+  declarative patch rules that are applied idempotently and automatically
+  after every update.
 
-  Der Compose Patcher besteht aus zwei Komponenten: einem Host-Daemon, der
-  als systemd-Service läuft und die eigentliche Patch-Logik ausführt, sowie
-  dieser Umbrel-App als grafische Oberfläche zum Steuern und Überwachen.
+
+  Features include a web UI for managing patch rules per app, a diff view
+  (baseline vs. current), dry-run simulation, automatic backup and validation
+  before every change, and a systemd-based filesystem watcher that detects
+  changes immediately.
+
+
+  Compose Patcher consists of two components: a host daemon running as a
+  systemd service that executes the patch logic, and this Umbrel app as a
+  graphical interface for management and monitoring.
 
 developer: Kasa
 website: https://github.com/willrobin/umbrel-community-app-store
@@ -34,9 +37,9 @@ repo: https://github.com/willrobin/umbrel-community-app-store
 support: https://github.com/willrobin/umbrel-community-app-store/issues
 gallery: []
 releaseNotes: >-
-  Erstveröffentlichung von Compose Patcher v1.0.0 für UmbrelOS 1.5.
-  Enthält Patch-Engine mit 8 Operationstypen, Backup/Restore-System,
-  systemd-Watcher, Unix-Socket-API und Web-UI zur Verwaltung.
+  Initial release of Compose Patcher v1.0.0 for umbrelOS 1.5. Includes
+  patch engine with 8 operation types, backup/restore system, systemd
+  watcher, Unix socket API, and web UI for management.
 dependencies: []
 path: ""
 defaultUsername: ""
