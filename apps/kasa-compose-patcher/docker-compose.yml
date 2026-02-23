@@ -10,6 +10,7 @@ services:
     image: ghcr.io/willrobin/compose-patcher-ui:1.0.0
     init: true
     restart: unless-stopped
+    stop_grace_period: 30s
     environment:
       DATA_DIR: /data
       PORT: "5000"

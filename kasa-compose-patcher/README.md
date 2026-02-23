@@ -1,63 +1,62 @@
 # Compose Patcher
 
-Automatisches Re-Patchen von Docker-Compose-Dateien nach Umbrel App-Updates.
+Automatically re-patch Docker Compose files after Umbrel app updates.
 
-## Übersicht
+## Overview
 
-Compose Patcher stellt benutzerdefinierte Änderungen an `docker-compose.yml`
-automatisch wieder her, wenn Umbrel bei App-Updates die Konfiguration
-überschreibt. Deklarative Patch-Regeln werden idempotent angewendet —
-sicher, nachvollziehbar und mit automatischem Backup.
+Compose Patcher automatically restores custom changes to `docker-compose.yml`
+when Umbrel overwrites the configuration during app updates. Declarative patch
+rules are applied idempotently — safe, traceable, and with automatic backups.
 
-## Architektur
+## Architecture
 
-| Komponente | Beschreibung |
+| Component | Description |
 |---|---|
-| **Host-Daemon** | Python-Service auf dem Host, führt Patches aus |
-| **Systemd-Watcher** | Überwacht Dateisystem-Änderungen, triggert Patches |
-| **Unix-Socket-API** | Sichere Kommunikation zwischen UI und Daemon |
-| **Web-UI (diese App)** | Grafische Oberfläche zum Verwalten und Überwachen |
+| **Host Daemon** | Python service on the host that executes patches |
+| **Systemd Watcher** | Monitors filesystem changes and triggers patches |
+| **Unix Socket API** | Secure communication between UI and daemon |
+| **Web UI (this app)** | Graphical interface for management and monitoring |
 
-## Architektur-Anforderungen
+## Architecture Requirements
 
-| Architektur | Unterstützt |
+| Architecture | Supported |
 |---|---|
-| AMD64 (x86_64) | Ja |
-| ARM64 (aarch64) | Ja |
+| AMD64 (x86_64) | Yes |
+| ARM64 (aarch64) | Yes |
 
-## Funktionen
+## Features
 
-- 8 Patch-Operationen: add_volume, remove_volume, ensure_device, remove_device,
+- 8 patch operations: add_volume, remove_volume, ensure_device, remove_device,
   set_env, unset_env, remove_key, replace_value
-- Automatisches Backup vor jeder Änderung
-- Baseline-Speicherung zum Vergleich (Diff-Ansicht)
-- Validierung via `docker compose config` oder YAML-Syntax
-- Dry-Run-Modus zur Vorschau
-- Web-UI mit Patch-Editor, Toggle, Diff-Ansicht
-- systemd Path-Watcher + Polling-Fallback
-- flock-basiertes Locking gegen parallele Ausführung
-- Token-gesicherte API über Unix-Domain-Socket
+- Automatic backup before every change
+- Baseline storage for comparison (diff view)
+- Validation via `docker compose config` or YAML syntax
+- Dry-run mode for previewing changes
+- Web UI with patch editor, toggle, and diff view
+- systemd path watcher + polling fallback
+- flock-based locking to prevent parallel execution
+- Token-secured API over Unix domain socket
 
 ## Links
 
 - **Repository:** [GitHub](https://github.com/willrobin/umbrel-community-app-store)
 - **Issues:** [GitHub Issues](https://github.com/willrobin/umbrel-community-app-store/issues)
 
-## Konfiguration
+## Configuration
 
-| Parameter | Wert |
+| Setting | Value |
 |---|---|
-| **Web-UI Port** | 3008 |
-| **Interner Port** | 5000 |
-| **Daten-Verzeichnis** | `/home/umbrel/compose-patcher` |
+| **Web UI Port** | 3008 |
+| **Internal Port** | 5000 |
+| **Data Directory** | `/home/umbrel/compose-patcher` |
 | **Patches** | `/home/umbrel/compose-patcher/patches/<app>.yml` |
 | **Baselines** | `/home/umbrel/compose-patcher/baselines/<app>/` |
 | **Logs** | `/home/umbrel/compose-patcher/logs/` |
-| **API-Socket** | `/home/umbrel/compose-patcher/daemon.sock` |
+| **API Socket** | `/home/umbrel/compose-patcher/daemon.sock` |
 
-## Erste Schritte
+## Getting Started
 
-### 1. Host-Daemon installieren (einmalig, per SSH)
+### 1. Install the host daemon (one-time, via SSH)
 
 ```bash
 cd /home/umbrel
@@ -66,13 +65,13 @@ cd umbrel-community-app-store/host/compose-patcher
 sudo bash install.sh
 ```
 
-### 2. Umbrel-App installieren
+### 2. Install the Umbrel app
 
-Installiere "Compose Patcher" aus dem Kasa Community App Store.
+Install "Compose Patcher" from the Kasa Community App Store.
 
-### 3. Patch erstellen
+### 3. Create a patch
 
-Erstelle eine Patch-Datei für eine App:
+Create a patch file for an app:
 
 ```bash
 cat > /home/umbrel/compose-patcher/patches/plex.yml << 'EOF'
@@ -87,29 +86,29 @@ ops:
 EOF
 ```
 
-### 4. Patch testen und anwenden
+### 4. Test and apply the patch
 
 ```bash
 compose-patcher dry-run --app plex
 compose-patcher apply --app plex
 ```
 
-Oder über die Web-UI: Dry Run und Anwenden per Button.
+Or use the web UI: Dry Run and Apply via buttons.
 
-## Hinweise
+## Notes
 
-- Der Host-Daemon muss separat installiert werden (per SSH).
-- Nach UmbrelOS-Updates die systemd-Units ggf. neu installieren.
-- Die UI zeigt den Installationsstatus und Reparatur-Anweisungen.
-- Backups werden automatisch erstellt und rotiert (max. 20 pro App).
-- Patches werden nur angewendet, wenn `enabled: true` gesetzt ist.
+- The host daemon must be installed separately (via SSH).
+- After umbrelOS updates, you may need to reinstall the systemd units.
+- The UI shows the installation status and repair instructions.
+- Backups are automatically created and rotated (max 20 per app).
+- Patches are only applied when `enabled: true` is set.
 
-## Fehlerbehebung
+## Troubleshooting
 
-| Problem | Lösung |
+| Problem | Solution |
 |---|---|
-| UI zeigt "Daemon nicht installiert" | Host-Daemon per SSH installieren (siehe oben) |
-| Patches werden nicht automatisch angewendet | `systemctl status compose-patcher.path` prüfen |
-| Validierung schlägt fehl | `compose-patcher doctor` für Diagnose ausführen |
-| Patch erzeugt ungültiges YAML | Backup wird automatisch wiederhergestellt; Patch prüfen |
-| Nach Umbrel-Update fehlen systemd-Units | `sudo bash install.sh` erneut ausführen |
+| UI shows "Daemon not installed" | Install the host daemon via SSH (see above) |
+| Patches are not applied automatically | Check `systemctl status compose-patcher.path` |
+| Validation fails | Run `compose-patcher doctor` for diagnostics |
+| Patch produces invalid YAML | Backup is automatically restored; review the patch |
+| systemd units missing after Umbrel update | Run `sudo bash install.sh` again |
