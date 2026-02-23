@@ -41,7 +41,7 @@ classification, smart tagging, and semantic search using LLMs.
 1. Install the app from the Kasa community store
 2. Access the web interface at `http://umbrel.local:3001`
 3. Complete the setup wizard:
-   - Enter your Paperless-ngx URL (e.g., `http://umbrel.local:8000`)
+   - Enter your Paperless-ngx URL (typically `http://umbrel.local:2349` on umbrelOS 1.5)
    - Enter your Paperless-ngx API token
    - Configure your LLM provider (Ollama or OpenAI)
 4. Set up the scan interval for automatic processing
@@ -65,3 +65,4 @@ If you have Ollama installed on Umbrel:
 - RAG (Retrieval-Augmented Generation) is disabled by default
 - First-time install: restart the container after completing setup to build the RAG index
 - The default scan interval is 30 minutes
+- Keep API keys and tokens in the app UI only; never commit real credentials to this repository

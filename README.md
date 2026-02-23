@@ -58,11 +58,13 @@ No port conflicts with other known community app stores (verified as of January 
 
 ### Workflow
 
-1. Create app scaffold: `./scripts/new-app.sh kasa-myapp "My App"`
-2. Edit files in `apps/kasa-myapp/`
-3. Publish to root: `./scripts/publish.sh`
-4. Validate configs: `./scripts/validate.sh`
-5. Commit and push
+1. One-time remote setup: `./scripts/setup-remotes.sh`
+2. Sync remotes: `git fetch --all --prune`
+3. Create app scaffold: `./scripts/new-app.sh kasa-myapp "My App"`
+4. Edit files in `apps/kasa-myapp/`
+5. Publish to root: `./scripts/publish.sh`
+6. Validate configs: `./scripts/validate.sh`
+7. Commit and push: `git push origin <branch>`
 
 ### Scripts
 
@@ -71,6 +73,21 @@ No port conflicts with other known community app stores (verified as of January 
 | `scripts/new-app.sh` | Create new app scaffold |
 | `scripts/publish.sh` | Sync apps to root level |
 | `scripts/validate.sh` | Validate YAML configurations |
+| `scripts/setup-remotes.sh` | Configure Forgejo+GitHub remote sync |
+
+## Git Sync (Forgejo + GitHub)
+
+- `origin` fetches from Forgejo and pushes to Forgejo + GitHub
+- `github` is available for explicit compare/fetch checks
+- Setup and workflow details: [`docs/git-remote-sync.md`](docs/git-remote-sync.md)
+
+Quick check:
+
+```bash
+git remote -v
+git rev-list --left-right --count HEAD...origin/main
+git rev-list --left-right --count HEAD...github/main
+```
 
 ## Contributing
 

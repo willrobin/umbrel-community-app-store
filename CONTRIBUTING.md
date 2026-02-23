@@ -10,7 +10,7 @@ apps/<app-id>/
   umbrel-app.yml
   docker-compose.yml
   README.md
-  icon.png (optional, stays here)
+  icon.png (optional)
 ```
 
 For Umbrel to discover apps, publish the app to the repo root:
@@ -20,11 +20,19 @@ For Umbrel to discover apps, publish the app to the repo root:
 by `publish.sh`. Do NOT manually edit or delete them. They are required for Umbrel
 to discover apps. Always edit files in `apps/<app-id>/` and then run `publish.sh`.
 
+## Git Remotes (Forgejo + GitHub)
+- Run once per clone: `./scripts/setup-remotes.sh`
+- Use `git push origin <branch>` to push to Forgejo and GitHub in one command
+- Verify sync when needed:
+  - `git rev-list --left-right --count HEAD...origin/main`
+  - `git rev-list --left-right --count HEAD...github/main`
+
 ## Persistence, Ports, Env, Secrets
 - Persist only what is necessary using named volumes or host paths under Umbrel's data directory.
 - Expose only required ports; prefer internal-only services.
 - Keep environment variables documented in the app README.
 - Do not commit secrets. Use placeholders and document how users should provide them.
+- `app_proxy.APP_HOST` must use `<app-id>_<service>_1`.
 
 ## Versioning & Updates
 - Follow semantic versioning in `umbrel-app.yml`.

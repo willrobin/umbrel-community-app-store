@@ -3,6 +3,8 @@ set -euo pipefail
 
 repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 apps_dir="$repo_root/apps"
+store_file="$repo_root/umbrel-app-store.yml"
+store_id=""
 
 errors=0
 manifest_ports=()
@@ -14,6 +16,38 @@ fail() {
   echo "ERROR: $1" >&2
   errors=$((errors + 1))
 }
+
+normalize_yaml_scalar() {
+  local value="$1"
+  value=$(printf '%s' "$value" | sed -E 's/[[:space:]]+#.*$//; s/^[[:space:]]+//; s/[[:space:]]+$//')
+  if [[ ${#value} -ge 2 && "${value:0:1}" == "\"" && "${value: -1}" == "\"" ]]; then
+    value="${value:1:${#value}-2}"
+  elif [[ ${#value} -ge 2 && "${value:0:1}" == "'" && "${value: -1}" == "'" ]]; then
+    value="${value:1:${#value}-2}"
+  fi
+  printf '%s' "$value"
+}
+
+is_secret_placeholder() {
+  local value="$1"
+  [[ -z "$value" ]] && return 0
+  [[ "$value" =~ ^\$\{[A-Za-z0-9_:\-]+\}$ ]] && return 0
+  [[ "$value" == "CHANGE_ME" ]] && return 0
+  [[ "$value" == "REPLACE_ME" ]] && return 0
+  [[ "$value" == REPLACE_WITH_* ]] && return 0
+  [[ "$value" == your_* ]] && return 0
+  [[ "$value" == YOUR_* ]] && return 0
+  [[ "$value" == "<"*">" ]] && return 0
+  return 1
+}
+
+if [[ -f "$store_file" ]]; then
+  store_id=$(rg -m1 '^id:' "$store_file" 2>/dev/null \
+    | sed -E 's/^id:[[:space:]]*//' \
+    | sed -E 's/[[:space:]]+#.*$//' \
+    | sed -E 's/^"//; s/"$//; s/^'\''//; s/'\''$//' \
+    | tr -d '[:space:]')
+fi
 
 if [[ ! -d "$apps_dir" ]]; then
   fail "Missing apps directory: $apps_dir"
@@ -31,6 +65,9 @@ else
     fi
 
     app_id=$(basename "$entry")
+    if [[ -n "$store_id" && "$app_id" != "$store_id"-* ]]; then
+      fail "App ID must start with '$store_id-': $app_id"
+    fi
     root_dir="$repo_root/$app_id"
     if [[ ! -d "$root_dir" ]]; then
       fail "Missing app directory at repo root: $root_dir (run scripts/publish.sh)"
@@ -62,21 +99,39 @@ else
     fi
 
     # Check for APP_PORT (not required if using network_mode: host)
+    app_proxy_host=$(rg -m1 '^[[:space:]]*APP_HOST:' "$entry/docker-compose.yml" 2>/dev/null | sed -E 's/.*APP_HOST:[[:space:]]*"?([^"[:space:]]+)"?.*/\1/' || true)
     app_proxy_port=$(rg -m1 '^[[:space:]]*APP_PORT:' "$entry/docker-compose.yml" 2>/dev/null | sed -E 's/.*APP_PORT:[[:space:]]*"?([0-9]+)"?.*/\1/' || true)
     uses_host_network=$(rg -m1 'network_mode:[[:space:]]*host' "$entry/docker-compose.yml" 2>/dev/null || true)
     if [[ -z "$app_proxy_port" && -z "$uses_host_network" ]]; then
       fail "Missing APP_PORT in $entry/docker-compose.yml (unless using network_mode: host)"
     fi
+    if [[ -z "$app_proxy_host" && -n "$app_proxy_port" ]]; then
+      fail "Missing APP_HOST in $entry/docker-compose.yml"
+    fi
+    if [[ -n "$app_proxy_host" && ! "$app_proxy_host" =~ ^${app_id}_[a-z0-9_-]+_1$ ]]; then
+      fail "APP_HOST must match <app-id>_<service>_1 in $entry/docker-compose.yml (found: $app_proxy_host)"
+    fi
+
+    while IFS= read -r line; do
+      key=$(printf '%s' "$line" | sed -E 's/^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*:.*$/\1/')
+      raw_value="${line#*:}"
+      value=$(normalize_yaml_scalar "$raw_value")
+      if [[ "$key" =~ (^|_)(PASSWORD|PASS|SECRET|TOKEN|API_KEY|PRIVATE_KEY|ACCESS_KEY)$ ]] && ! is_secret_placeholder "$value"; then
+        fail "Potential secret committed in $entry/docker-compose.yml for key '$key' (use Umbrel env vars or placeholder values)"
+      fi
+    done < <(rg --no-line-number '^[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*:[[:space:]]*.*$' "$entry/docker-compose.yml" || true)
   done
 fi
 
-if [[ ! -f "$repo_root/umbrel-app-store.yml" ]]; then
-  fail "Missing store metadata: $repo_root/umbrel-app-store.yml"
+if [[ ! -f "$store_file" ]]; then
+  fail "Missing store metadata: $store_file"
+elif [[ -z "$store_id" ]]; then
+  fail "Missing or invalid id in $store_file"
 fi
 
 shopt -s nullglob
 yaml_files=(
-  "$repo_root/umbrel-app-store.yml"
+  "$store_file"
   "$repo_root/templates"/*.yml
   "$repo_root/templates"/*.yaml
   "$apps_dir"/*/*.yml

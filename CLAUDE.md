@@ -24,17 +24,19 @@ repo-root/
 │       ├── umbrel-app.yml   # App manifest (metadata, ports, description)
 │       ├── docker-compose.yml
 │       ├── README.md
-│       └── icon.png         # App icon (PNG, stays in apps/ only)
+│       └── icon.png         # App icon (source)
 │
 ├── kasa-<app-id>/           # PUBLISHED — Umbrel reads from here
 │   ├── umbrel-app.yml       # ← Copied by publish.sh
 │   ├── docker-compose.yml   # ← Copied by publish.sh
-│   └── README.md            # ← Copied by publish.sh
+│   ├── README.md            # ← Copied by publish.sh
+│   └── icon.png             # ← Copied by publish.sh (if present)
 │
 ├── scripts/
 │   ├── new-app.sh           # Scaffold a new app
 │   ├── publish.sh           # Sync apps/ → root level
-│   └── validate.sh          # Validate all configs
+│   ├── validate.sh          # Validate all configs + safety checks
+│   └── setup-remotes.sh     # Configure Forgejo + GitHub remotes
 │
 ├── templates/               # Templates for new-app.sh
 ├── docs/                    # Detailed guides (checklist, architecture)
@@ -52,6 +54,21 @@ repo-root/
 2. **Run `./scripts/publish.sh` after EVERY change** — Syncs to root level
 3. **Run `./scripts/validate.sh` before committing** — Catches errors early
 4. **Root-level app directories are build artifacts** — Never manually edit or delete them
+
+## Git Remote Model (Forgejo + GitHub)
+
+- `origin` fetches from Forgejo (`umbrel.local`)
+- `origin` pushes to Forgejo + GitHub (two push URLs)
+- `github` exists for explicit fetch/compare checks
+- One-time setup command: `./scripts/setup-remotes.sh`
+
+Before pushing, run:
+
+```bash
+git fetch --all --prune
+git rev-list --left-right --count HEAD...origin/main
+git rev-list --left-right --count HEAD...github/main
+```
 
 ---
 
@@ -102,7 +119,7 @@ Do not skip steps. Mark each as done before proceeding.
 - [ ] **Configure `docker-compose.yml`** — Follow Umbrel conventions:
   - Use `version: "3.7"`
   - Include `app_proxy` service with `APP_HOST` and `APP_PORT`
-  - `APP_HOST` format: `<app-id>_<service-name>_1` (or service name if using `container_name`)
+  - `APP_HOST` format: `<app-id>_<service-name>_1`
   - Use `init: true` for proper signal handling
   - Use `restart: unless-stopped`
   - Use `user: "1000:1000"` where possible (non-root)

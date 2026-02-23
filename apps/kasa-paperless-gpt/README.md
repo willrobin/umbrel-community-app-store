@@ -38,11 +38,14 @@ Before starting, configure these in the docker-compose.yml:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `PAPERLESS_BASE_URL` | Paperless-ngx URL | `http://umbrel.local:8000` |
+| `PAPERLESS_BASE_URL` | Paperless-ngx URL | `http://umbrel.local:2349` |
 | `PAPERLESS_API_TOKEN` | Your API token | Get from Paperless-ngx settings |
 | `LLM_PROVIDER` | LLM provider | `ollama`, `openai`, `gemini` |
 | `LLM_MODEL` | Model name | `qwen2.5:7b`, `gpt-4o`, `gemini-pro` |
 | `OLLAMA_HOST` | Ollama URL (if using) | `http://umbrel.local:11434` |
+
+The compose file in this repository intentionally contains placeholder values
+(`CHANGE_ME`) for secrets. Never commit real tokens.
 
 ### Data Volumes
 
@@ -55,7 +58,7 @@ Before starting, configure these in the docker-compose.yml:
 
 1. Install the app from the Kasa community store
 2. Get your Paperless-ngx API token from Settings > API
-3. Edit the app's docker-compose.yml with your settings
+3. Set your token/provider settings in your runtime deployment (for example via Compose Patcher), not in this Git repository
 4. Restart the app
 5. Access the web interface at `http://umbrel.local:3003`
 

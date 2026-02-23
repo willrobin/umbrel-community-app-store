@@ -3,7 +3,7 @@ version: "3.7"
 services:
   app_proxy:
     environment:
-      APP_HOST: server
+      APP_HOST: kasa-paperless-gpt_server_1
       APP_PORT: 8080
 
   server:
@@ -19,6 +19,7 @@ services:
     environment:
       # Set this to your Paperless-ngx URL (Umbrel typically uses port 2349).
       PAPERLESS_BASE_URL: "http://${DEVICE_DOMAIN_NAME}:2349"
+      # Keep placeholder value in git. Configure real token in runtime only.
       PAPERLESS_API_TOKEN: "CHANGE_ME"
       MANUAL_TAG: "paperless-gpt"
       AUTO_TAG: "paperless-gpt-auto"

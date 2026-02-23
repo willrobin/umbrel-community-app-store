@@ -3,6 +3,7 @@ version: "3.7"
 services:
   server:
     image: ghcr.io/music-assistant/server:2.7.5
+    init: true
     restart: unless-stopped
     stop_grace_period: 30s
     network_mode: host

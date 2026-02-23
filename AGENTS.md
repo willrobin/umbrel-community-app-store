@@ -15,22 +15,25 @@ repo-root/
 │       ├── umbrel-app.yml
 │       ├── docker-compose.yml
 │       ├── README.md
-│       └── icon.png         # Icons stay in apps/ only
+│       └── icon.png         # Source icon (canonical)
 │
 ├── kasa-app/                # PUBLISHED: Umbrel reads from here
 │   ├── umbrel-app.yml       # ← Copied by publish.sh
 │   ├── docker-compose.yml   # ← Copied by publish.sh
-│   └── README.md            # ← Copied by publish.sh
+│   ├── README.md            # ← Copied by publish.sh
+│   └── icon.png             # ← Copied by publish.sh (if present)
 │
 ├── scripts/
-│   └── publish.sh           # Copies apps/* → root/*
+│   ├── publish.sh           # Copies apps/* → root/*
+│   ├── validate.sh          # Validates manifests/compose/safety checks
+│   └── setup-remotes.sh     # Configures Forgejo+GitHub sync remotes
 └── umbrel-app-store.yml
 ```
 
 **Why this structure?**
 - Umbrel discovers apps from the **repository root**, not from subdirectories
-- We keep source files in `apps/` for organization and to include extras (icon.png)
-- `publish.sh` copies only the 3 required files to root level
+- We keep source files in `apps/` for organization
+- `publish.sh` copies required app files (and `icon.png` when present) to root level
 
 **Golden Rules:**
 1. Edit files in `apps/<app-id>/` ONLY
@@ -53,11 +56,13 @@ repo-root/
 - Don't introduce breaking changes without calling them out.
 
 ## Workflow
-1) Scaffold: `./scripts/new-app.sh <app-id> "<App Name>"`
-2) Edit app files and README.
-3) Publish: `./scripts/publish.sh`
-4) Validate: `./scripts/validate.sh`
-5) Commit with message style: `type(scope): short summary` (example: `chore(apps): add foo`).
+1) One-time remote setup: `./scripts/setup-remotes.sh`
+2) Scaffold: `./scripts/new-app.sh <app-id> "<App Name>"`
+3) Edit app files and README.
+4) Publish: `./scripts/publish.sh`
+5) Validate: `./scripts/validate.sh`
+6) Commit with message style: `type(scope): short summary` (example: `chore(apps): add foo`).
+7) Push once: `git push origin <branch>` (pushes to Forgejo + GitHub).
 
 ## PR / Commit Guidelines
 - Keep commits small and reviewable.
@@ -69,6 +74,8 @@ repo-root/
 - Avoid exposing unnecessary ports.
 - Persist only required data via volumes.
 - Do not store secrets in repo or compose files.
+- Use placeholders or Umbrel env vars (`APP_PASSWORD`, `APP_SEED`) for sensitive values.
+- Keep remote URLs credential-free (SSH URLs preferred for push).
 
 ## Umbrel Env Vars (umbrelOS 1.5 docs + verified)
 - Paths: `APP_DATA_DIR`, `APP_BITCOIN_DATA_DIR`, `APP_LIGHTNING_NODE_DATA_DIR`.
@@ -82,3 +89,21 @@ repo-root/
 - Keep `umbrel-app.yml` ports unique across apps and in the typical Umbrel range where possible.
 - Prefer `app_proxy` and avoid host `ports:` unless the app needs extra endpoints (streaming, etc.).
 - Document any exposed host ports in the app README.
+
+## app_proxy Convention (required)
+- `APP_HOST` must use: `<app-id>_<service-name>_1` (official Umbrel format).
+- `APP_PORT` must match the target service's container port.
+- If `network_mode: host` is used, document why and ensure the manifest `port` is reachable.
+
+## Git Remotes: Forgejo + GitHub
+- Primary fetch remote: `origin` (Forgejo at `umbrel.local`).
+- `origin` has two push URLs: Forgejo + GitHub.
+- Additional `github` remote exists for explicit fetch/compare.
+- Setup script: `./scripts/setup-remotes.sh`
+- Detailed guide: `docs/git-remote-sync.md`
+
+### Quick checks
+- `git remote -v`
+- `git fetch --all --prune`
+- `git rev-list --left-right --count HEAD...origin/main`
+- `git rev-list --left-right --count HEAD...github/main`
